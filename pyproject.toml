@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "ga-opt-brand"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.13"
+pandas-datareader = "^0.10.0"
+setuptools = "^75.3.0"
+matplotlib = "^3.9.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
