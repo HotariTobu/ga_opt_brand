@@ -5,3 +5,5 @@ venv
 
 *.csv
 *.log
+
+set_tcl_tk.sh
