@@ -92,3 +92,7 @@ while True:
 ```py
 ret = ret + (r(i, stock_dict, T) * (1/locus))
 ```
+
+## リストの代わりに`array`を使用する
+
+https://docs.python.org/3/library/array.html
