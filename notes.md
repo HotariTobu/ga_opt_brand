@@ -44,12 +44,33 @@ import matplotlib.pyplot as plt
 df.to_csv("C:\\Users\\rraa9\\Desktop\\研究室\\プログラム\\銘柄選択\\" + line.rstrip() + ".csv")
 ```
 
+## リストの変数名は複数形や〇〇_listにする
+
+```
+name = []
+```
+
 ## withステートメントの使い方
 
 ```py
 with open("stock.txt", "r") as stocks:
     name = [i.strip() for i in stocks]
 stocks.close() # <-- 必要ない
+```
+
+## ループをまとめる
+
+```py
+stock_codes = []
+with open("stock.txt", "r") as stocks:
+    stock_codes = [line.strip() for line in stocks]
+
+stock_dict = {}
+for i in stock_codes:
+    ...
+
+
+                    tmp = stock_codes[random.randint(0, len(stock_codes) - 1)]
 ```
 
 ## プログラム全体のパラメータの位置
@@ -96,3 +117,44 @@ ret = ret + (r(i, stock_dict, T) * (1/locus))
 ## リストの代わりに`array`を使用する
 
 https://docs.python.org/3/library/array.html
+
+## 格納される値の意味、型が違うのに同じ名前の変数にしない
+
+```py
+def precision(population):
+    ...
+
+#一世代の個体数
+population = 50
+```
+
+## ループの回数が既知の場合はfor文を使う
+
+```py
+while True:
+    #Terminal condition.
+    if maximumTerminal == terminal:
+        #世代数が最大世代数なら終了
+        break
+
+    ...
+
+    terminal = terminal + 1
+```
+
+```py
+for terminal in range(maximumTerminal):
+    ...
+```
+
+## ランダムに二つの組み合わせを取り出す
+
+```py
+                I1 = random.randint(0, population - 1)
+                I2 = random.randint(0, population - 1)
+```
+
+```py
+                I1 = random.randint(0, population - 1)
+                I2 = random.randint(I1 + 1, I1 + population) % population
+```
