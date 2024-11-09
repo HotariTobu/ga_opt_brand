@@ -61,9 +61,9 @@ def calculate_distance(p, idx_1, idx_2):
 
 #株式データを番号(str型)で管理するリスト
 stock_codes = []
-with open("stock.txt", "r") as stocks:
-    stock_codes = [i.strip() for i in stocks]
-stocks.close()
+with open("stock.txt", "r") as file:
+    stock_codes = [line.strip() for line in file]
+file.close()
 
 #株式データを保存する辞書(辞書の中身は全てstr型)
 #辞書へのアクセス方法name[*]で株式データ選択, stock_codes[0][*]で株式データの日付アクセス
