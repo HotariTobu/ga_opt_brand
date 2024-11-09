@@ -60,16 +60,16 @@ def calculate_distance(p, idx_1, idx_2):
 #Readind data.
 
 #株式データを番号(str型)で管理するリスト
-name = []
+stock_codes = []
 with open("stock.txt", "r") as stocks:
-    name = [i.strip() for i in stocks]
+    stock_codes = [i.strip() for i in stocks]
 stocks.close()
 
 #株式データを保存する辞書(辞書の中身は全てstr型)
-#辞書へのアクセス方法name[*]で株式データ選択, name[0][*]で株式データの日付アクセス
-#name[0][0][*]で株式データの日付の四本値などにアクセス
+#辞書へのアクセス方法name[*]で株式データ選択, stock_codes[0][*]で株式データの日付アクセス
+#stock_codes[0][0][*]で株式データの日付の四本値などにアクセス
 stock_dict = {}
-for i in name:
+for i in stock_codes:
     with open(i + ".csv", "r", encoding = "utf-8") as csv_file:
         f = list(csv.reader(csv_file, delimiter = ","))
         f.reverse()
@@ -79,7 +79,7 @@ for i in name:
     csv_file.close()
 
 #取得した株式データの期間を保存
-T = len(stock_dict[name[0]])
+T = len(stock_dict[stock_codes[0]])
 
 #Gen Initial individuals.
 
@@ -97,7 +97,7 @@ for i in range(0,population):
     while True:
         tmp = []
         for i in range(0, locus):
-            tmp.append(name[random.randint(0, len(name) - 1)])
+            tmp.append(stock_codes[random.randint(0, len(stock_codes) - 1)])
         if len(tmp) == len(set(tmp)):
             #発生させた個体を初期個体群にappend
             inIndividuals.append(tmp)
@@ -206,7 +206,7 @@ while True:
                 child = individuals[i]
                 #変更前と変更後の銘柄が同じじゃない場合銘柄を変更
                 while True:
-                    tmp = name[random.randint(0, len(name) - 1)]
+                    tmp = stock_codes[random.randint(0, len(stock_codes) - 1)]
                     if tmp != child[mutationLocus]:
                         child[mutationLocus] = tmp
                         break
