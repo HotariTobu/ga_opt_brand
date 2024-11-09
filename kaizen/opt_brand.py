@@ -1,7 +1,6 @@
 import csv
 import random
 import copy
-import itertools
 import math
 
 #平均収益率を計算する関数
@@ -38,11 +37,11 @@ def precision(population):
                 #個体iが個体jよりリスクが低く, リターンが高い場合
                 if (population[i][0] <= population[j][0]) and (population[i][1] >= population[j][1]):
                     precision_ans[j] = precision_ans[j] + 1
-                
+
                 #個体jが個体iよりリスクが低く, リターンが高い場合
                 if (population[j][0] <= population[i][0]) and (population[j][1] >= population[i][1]):
                     precision_ans[i] = precision_ans[i] + 1
-    
+
     return precision_ans
 #適合度計算関数終了
 
@@ -58,7 +57,7 @@ def calculate_distance(p, idx_1, idx_2):
 
 #main文
 
-#Readind data. 
+#Readind data.
 
 #株式データを番号(str型)で管理するリスト
 name = []
@@ -82,7 +81,7 @@ for i in name:
 #取得した株式データの期間を保存
 T = len(stock_dict[name[0]])
 
-#Gen Initial individuals. 
+#Gen Initial individuals.
 
 #初期個体群
 inIndividuals = []
@@ -149,7 +148,7 @@ terminal = 0
 maximumTerminal = 500
 
 while True:
-    #Terminal condition. 
+    #Terminal condition.
     if maximumTerminal == terminal:
         #世代数が最大世代数なら終了
         break
@@ -159,7 +158,7 @@ while True:
     priorIndividuals = copy.deepcopy(individuals)
     #Crossover
     for i in range(0, population):
-        while True: 
+        while True:
             #交叉する個体を示す変数
             I1 = 0
             I2 = 0
@@ -322,7 +321,7 @@ while True:
                 if (i != min_distance[1]) and (i != min_distance[2]):
                     min_dis1.append((calculate_distance(p, min_distance[1], i), min_distance[1], i))
                     min_dis2.append((calculate_distance(p, min_distance[2], i), min_distance[2], i))
-            
+
             min_dis1_min = min(min_dis1, key=lambda x: x[0])
             min_dis2_min = min(min_dis2, key=lambda x: x[0])
             #Step4. 2番目に近接している個体との距離が短い個体を削除する
