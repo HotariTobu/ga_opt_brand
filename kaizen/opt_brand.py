@@ -146,9 +146,6 @@ print(calc_risk_return(initialIndividuals))
 #現在の個体群を保存するリスト, [['1', '2', '3'], ['3', '5', '6']]のように管理されている
 individuals = initialIndividuals
 
-#1世代前の個体群を保存する
-priorIndividuals = []
-
 #世代数
 terminal = 0
 
