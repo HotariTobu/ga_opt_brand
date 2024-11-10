@@ -29,7 +29,7 @@ investment_ratio = 1 / LOCUS
 average_roi_dict: dict[int, float] = {}
 """平均収益率のキャッシュ"""
 
-cov_dict: dict[frozenset, float] = {}
+cov_roi_dict: dict[frozenset, float] = {}
 """収益率の共分散のキャッシュ"""
 
 def calc_risk_return(individuals: list[list[int]]):
@@ -73,22 +73,26 @@ def r(i):
 #共分散を計算する関数
 def sigma(i, j):
     key = frozenset({i, j})
-    if key in cov_dict:
-        return cov_dict[key]
+    if key in cov_roi_dict:
+        return cov_roi_dict[key]
 
-    #偏差の合計を計算
-    distinction_sum = 0
+    # cov(X, Y) = E[(X - E[X])(Y - E[Y])] = E[XY] - E[X]E[Y]
+
     roi_list_i = roi_list_dict[i]
     roi_list_j = roi_list_dict[j]
+    sum_roi_ij = 0
+    for roi_i, roi_j in zip(roi_list_i, roi_list_j):
+        sum_roi_ij += roi_i * roi_j
+    average_roi_ij = sum_roi_ij / day_count
+
     average_roi_i = r(i)
     average_roi_j = r(j)
-    for k in range(day_count):
-        distinction_sum += (roi_list_i[k] - average_roi_i) * (roi_list_j[k] - average_roi_j)
-    CoV = distinction_sum / day_count
 
-    cov_dict[key] = CoV
+    cov_roi = average_roi_ij - average_roi_i * average_roi_j
 
-    return CoV
+    cov_roi_dict[key] = cov_roi
+
+    return cov_roi
 
 #適合度計算関数
 def precision(population: list[PopulationItem]):
