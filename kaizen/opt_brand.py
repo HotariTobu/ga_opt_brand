@@ -14,7 +14,7 @@ POPULATION = 50
 """一世代の個体数"""
 
 LOCUS_NUM = 4
-"""遺伝子座の数"""
+"""遺伝子の数"""
 
 MAXIMUM_TERMINAL = 500
 """最大世代数"""
