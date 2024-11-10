@@ -98,7 +98,7 @@ T = len(stock_dict[stock_codes[0]])
 #Gen Initial individuals.
 
 #初期個体群
-inIndividuals = []
+initialIndividuals = []
 
 for i in range(0,POPULATION):
     #重複が無いように初期個体を発生させる
@@ -108,10 +108,10 @@ for i in range(0,POPULATION):
             tmp.append(stock_codes[random.randint(0, len(stock_codes) - 1)])
         if len(tmp) == len(set(tmp)):
             #発生させた個体を初期個体群にappend
-            inIndividuals.append(tmp)
+            initialIndividuals.append(tmp)
             break
 print("初期個体群 = ")
-print(inIndividuals)
+print(initialIndividuals)
 print("初期個体群のリスクとリターン = ")
 #Evaluation
 #リターンとリスクを保存するリスト, 行は個体に対応
@@ -119,7 +119,7 @@ returns = []
 risks = []
 
 #リターンを計算 投資比率は1/locusで固定(個体内で均等な投資比率)
-for individual in inIndividuals:
+for individual in initialIndividuals:
     ret = 0
     #一つの個体のリターンを計算
     for i in individual:
@@ -128,7 +128,7 @@ for individual in inIndividuals:
 #リターンの計算終了
 
 #リスクを計算 投資比率は1/locusで固定(個体内で均等な投資比率)
-for individual in inIndividuals:
+for individual in initialIndividuals:
     ris = 0
     for i in individual:
         for j in individual:
@@ -146,7 +146,7 @@ print(p)
 
 #現在の個体群を保存するリスト, [['1', '2', '3'], ['3', '5', '6']]のように管理されている
 individuals = []
-individuals = copy.deepcopy(inIndividuals)
+individuals = copy.deepcopy(initialIndividuals)
 
 #1世代前の個体群を保存する
 priorIndividuals = []
