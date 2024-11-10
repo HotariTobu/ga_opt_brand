@@ -175,24 +175,26 @@ for terminal in range(MAXIMUM_TERMINAL):
     #Mutation
     for i in population_range:
         #各個体に対して5%の確率で突然変異を施す
-        if random.random() < 0.05:
-            #どの遺伝子座に突然変異を施すか決める
-            mutationLocus = random.randint(0, LOCUS - 1)
-            #ランダムに銘柄番号を決める 同じ銘柄番号の場合はやり直し
-            while True:
-                child = individuals[i]
-                #変更前と変更後の銘柄が同じじゃない場合銘柄を変更
-                while True:
-                    tmp = stock_codes[random.randint(0, len(stock_codes) - 1)]
-                    if tmp != child[mutationLocus]:
-                        child[mutationLocus] = tmp
-                        break
-                #遺伝子座の銘柄を変更完了
+        if random.random() > 0.05:
+            continue
 
-                if len(child) == len(set(child)):
-                    individuals[i] = child
+        #どの遺伝子座に突然変異を施すか決める
+        mutationLocus = random.randint(0, LOCUS - 1)
+        #ランダムに銘柄番号を決める 同じ銘柄番号の場合はやり直し
+        while True:
+            child = individuals[i]
+            #変更前と変更後の銘柄が同じじゃない場合銘柄を変更
+            while True:
+                tmp = stock_codes[random.randint(0, len(stock_codes) - 1)]
+                if tmp != child[mutationLocus]:
+                    child[mutationLocus] = tmp
                     break
-            #ランダムに銘柄番号決定終了
+            #遺伝子座の銘柄を変更完了
+
+            if len(child) == len(set(child)):
+                individuals[i] = child
+                break
+        #ランダムに銘柄番号決定終了
     #Mutation終了
 
     #一世代前と現代の世代を一つのリストに入れる
