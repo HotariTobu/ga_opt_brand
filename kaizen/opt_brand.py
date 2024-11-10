@@ -135,10 +135,7 @@ def calc_gofs(risk_array: array[float], return_array: array[float]) -> array[int
 
 #Readind data.
 
-type StockCode = str
-"""銘柄コード"""
-
-stock_codes: list[StockCode] = []
+stock_codes: list[str] = []
 """銘柄コードの一覧"""
 
 roi_list_dict: dict[int, array[float]] = {}
