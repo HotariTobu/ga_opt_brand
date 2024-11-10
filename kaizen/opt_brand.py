@@ -246,9 +246,11 @@ for terminal in range(MAXIMUM_TERMINAL):
             min_dis1: list[tuple[float, int, int]] = []
             min_dis2: list[tuple[float, int, int]] = []
             for i in range(len(next_idx)):
-                if (i != min_distance[1]) and (i != min_distance[2]):
-                    min_dis1.append((calculate_distance(p, min_distance[1], i), min_distance[1], i))
-                    min_dis2.append((calculate_distance(p, min_distance[2], i), min_distance[2], i))
+                if i == min_distance[1] or i == min_distance[2]:
+                    continue
+
+                min_dis1.append((calculate_distance(p, min_distance[1], i), min_distance[1], i))
+                min_dis2.append((calculate_distance(p, min_distance[2], i), min_distance[2], i))
 
             min_dis1_min = min(min_dis1, key=lambda x: x[0])
             min_dis2_min = min(min_dis2, key=lambda x: x[0])
