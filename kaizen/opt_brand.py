@@ -146,15 +146,7 @@ print(calc_risk_return(initialIndividuals))
 #現在の個体群を保存するリスト, [['1', '2', '3'], ['3', '5', '6']]のように管理されている
 individuals = initialIndividuals
 
-#世代数
-terminal = 0
-
-while True:
-    #Terminal condition.
-    if MAXIMUM_TERMINAL == terminal:
-        #世代数が最大世代数なら終了
-        break
-
+for terminal in range(MAXIMUM_TERMINAL):
     #Individuals replication
     #一世代前の個体群をコピーして保存する
     priorIndividuals = copy.deepcopy(individuals)
@@ -316,7 +308,6 @@ while True:
             nextIndividuals.append(individuals[row])
     #次世代に残す個体の選定終了
     individuals = nextIndividuals
-    terminal = terminal + 1
     print(terminal)
 #一世代での操作終了
 
