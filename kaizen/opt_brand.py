@@ -41,7 +41,7 @@ def calc_risk_return(individuals: list[list[int]]):
         ret = 0
         #一つの個体のリターンを計算
         for i in individual:
-            ret += (r(i, T) * investment_ratio)
+            ret += r(i, T) * investment_ratio
         returns.append(ret)
     #リターンの計算終了
 
@@ -50,7 +50,7 @@ def calc_risk_return(individuals: list[list[int]]):
         ris = 0
         for i in individual:
             for j in individual:
-                ris += (sigma(i, j, T, r(i, T), r(j, T)) * investment_ratio * investment_ratio)
+                ris += sigma(i, j, T, r(i, T), r(j, T)) * investment_ratio * investment_ratio
         risks.append(ris)
     #リスクの計算終了
 
