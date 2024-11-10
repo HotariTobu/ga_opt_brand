@@ -7,7 +7,10 @@ from statistics import mean
 random.seed(0)
 
 STOCK_LIST_FILEPATH = "stock.txt"
+"""銘柄リストのファイルのパス"""
+
 STOCK_DATA_FILEPATH_TEMPLATE = "{}.csv"
+"""銘柄コードを埋め込んで株式データのファイルのパスを得るためのテンプレート"""
 
 CLOSING_COL_INDEX = 4
 """CSVデータファイルの終値の列番号"""
@@ -30,7 +33,7 @@ stock_codes: list[str] = []
 roi_array_dict: dict[int, array[float]] = {}
 """
 各銘柄の収益率の配列の辞書
-収益率の配列は日付の降順となっている
+収益率の配列の要素は日付の降順となっている
 """
 
 def closing_to_roi(closing_array: array[float]) -> array[float]:
@@ -51,6 +54,7 @@ def closing_to_roi(closing_array: array[float]) -> array[float]:
 
     return roi_array
 
+# 株式データのファイルを読み込む
 with open(STOCK_LIST_FILEPATH, "r") as file:
     for i, line in enumerate(file):
         stock_code = line.strip()
@@ -112,6 +116,7 @@ def get_cov_roi(i: int, j: int) -> float:
 
     # cov(X, Y) = E[(X - E[X])(Y - E[Y])] = E[XY] - E[X]E[Y]
 
+    # E[XY]の計算
     roi_array_i = roi_array_dict[i]
     roi_array_j = roi_array_dict[j]
     sum_roi_ij = 0
@@ -119,6 +124,7 @@ def get_cov_roi(i: int, j: int) -> float:
         sum_roi_ij += roi_i * roi_j
     average_roi_ij = sum_roi_ij / day_count
 
+    # E[X]とE[Y]の取得
     average_roi_i = get_average_roi(i)
     average_roi_j = get_average_roi(j)
 
@@ -132,6 +138,15 @@ investment_ratio = 1 / LOCUS_NUM
 """投資比率(固定。個体内で均等)"""
 
 def calc_risks(individuals: list[list[int]]) -> array[float]:
+    """指定された個体群のリスクを計算する。
+
+    Args:
+        individuals (list[list[int]]): 個体群
+
+    Returns:
+        array[float]: 個体ごとのリスク
+    """
+
     global investment_ratio
 
     risk_array = array('f')
@@ -148,6 +163,15 @@ def calc_risks(individuals: list[list[int]]) -> array[float]:
     return risk_array
 
 def calc_returns(individuals: list[list[int]]) -> array[float]:
+    """指定された個体群のリターンを計算する。
+
+    Args:
+        individuals (list[list[int]]): 個体群
+
+    Returns:
+        array[float]: 個体ごとのリターン
+    """
+
     global investment_ratio
 
     return_array = array('f')
@@ -181,7 +205,7 @@ for _ in population_range:
     individuals.append(individual)
 
 def print_stock_combinations(individuals: list[list[int]], prefix = ''):
-    """銘柄の組み合わせを出力する
+    """銘柄の組み合わせを出力する。
 
     Args:
         individuals (list[list[int]]): 個体群
@@ -207,100 +231,125 @@ def print_risk_return(individuals: list[list[int]], prefix = ''):
 print_stock_combinations(individuals, prefix="initial_")
 print_risk_return(individuals, prefix="initial_")
 
-
 def crossover(individuals: list[list[int]]):
+    """交叉を行って個体群を更新する。
+
+    Args:
+        individuals (list[list[int]]): 個体群
+    """
+
     for _ in population_range:
         while True:
-            #交叉する個体を示す変数
+            # 交叉する個体を選ぶ
             i, j = random.sample(population_range, 2)
             individual_i = individuals[i]
             individual_j = individuals[j]
 
-            #交叉する遺伝子座を選択
+            # 交叉する遺伝子座を選ぶ
             locus = random.randrange(1, LOCUS_NUM)
 
-            #交叉を行う
+            # 交叉を行う
             new_individual_i = individual_i[:locus] + individual_j[locus:]
             new_individual_j = individual_j[:locus] + individual_i[locus:]
 
-            #交叉する際, 一つの個体内に同じ銘柄番号が格納されていないか確認する
+            # 交叉後、一つの個体に同じ銘柄番号が含まれる場合はやり直し
             if len(new_individual_i) == len(set(new_individual_i)) and len(new_individual_j) == len(set(new_individual_j)):
                 individuals[i] = new_individual_i
                 individuals[j] = new_individual_j
                 break
 
 def mutation(individuals: list[list[int]]):
+    """突然変異を行って個体群を更新する。
+
+    Args:
+        individuals (list[list[int]]): 個体群
+    """
+
     for i in population_range:
         if random.random() > MUTATION_RATE:
             continue
 
         new_individual = individuals[i].copy()
 
-        #ランダムに銘柄番号を決める 同じ銘柄番号の場合はやり直し
+        # 元の個体に含まれない銘柄番号を選ぶ
         while True:
-            #変更前と変更後の銘柄が同じじゃない場合銘柄を変更
             stock_index = random.choice(stock_range)
             if stock_index not in new_individual:
                 break
 
-        #どの遺伝子座に突然変異を施すか決める
+        # 突然変異する遺伝子座を選ぶ
         locus = random.randrange(LOCUS_NUM)
 
         new_individual[locus] = stock_index
         individuals[i] = new_individual
 
-#適合度計算関数
 def calc_gofs(risk_array: array[float], return_array: array[float]) -> list[int]:
+    """リスクとリターンから適合度を計算する。
+
+    Args:
+        risk_array (array[float]): リスクの配列
+        return_array (array[float]): リターンの配列
+
+    Returns:
+        list[int]: 適合度のリスト
+    """
+
+    # リスクの低い順、リターンの高い順で個体のインデックスを並び替える
     sorted_risk_indices = [i for i, _ in sorted(enumerate(risk_array), key=lambda x: x[1])]
     sorted_return_indices = [i for i, _ in sorted(enumerate(return_array), key=lambda x: -x[1])]
 
+    # 個体のインデックスからリスクの順位、リターンの順位を取得するための辞書
     risk_order_dict = {i: order for order, i in enumerate(sorted_risk_indices)}
     return_order_dict = {i: order for order, i in enumerate(sorted_return_indices)}
 
     gof_list: list[int] = []
 
     for i in range(len(risk_array)):
+        # 個体のリスクの順位とリターンの順位を取得する
         risk_order = risk_order_dict[i]
         return_order = return_order_dict[i]
 
+        # この個体よりもリスクが低い個体のインデックスと、この個体よりもリターンが高い個体のインデックスを取得する
         low_risk_indices = sorted_risk_indices[:risk_order]
         high_return_indices = sorted_return_indices[:return_order]
 
+        # リスクのインデックスとリターンのインデックスで重複している個体の数が適合度となる
         gof = len(set(low_risk_indices) & set(high_return_indices))
         gof_list.append(gof)
 
     return gof_list
 
+# 進化開始
 for terminal in range(MAXIMUM_TERMINAL):
-    #Individuals replication
-    #一世代前の個体群をコピーして保存する
+    # Individuals replication
+    # 一世代前の個体群をコピーして保存する
     prev_individuals = individuals.copy()
 
     crossover(individuals)
     mutation(individuals)
 
-    #一世代前と現代の世代を一つのリストに入れる
+    # 一世代前と現代の世代を一つのリストに入れる
     individuals += prev_individuals
 
-    #Evaluation
+    # Evaluation
     risk_array = calc_risks(individuals)
     return_array = calc_returns(individuals)
-    #Evaluation終了
 
-    #Environmental selection
+    # Environmental selection
 
-    #適合度を計算する
+    # 適合度を計算する
     gof_list = calc_gofs(risk_array, return_array)
 
-    #次世代に残す個体をリストで保存
+    # 次世代に残す個体のリスト
     next_individuals: list[list[int]] = []
 
-    #適合度0の個体数が次世代に残す所定個体数(POPULATION)以下であるかどうか判定
+    # 適合度0の個体数が次世代に残す所定個体数(POPULATION)以下であるかどうか判定
     if gof_list.count(0) <= POPULATION:
-        #適合度が小さい順、リスクが小さい順に個体を選ぶ
+        # 適合度が小さい順、リスクが小さい順に個体を選ぶ
         next_individuals = [individual for _, _, individual in sorted(zip(gof_list, risk_array, individuals))[:POPULATION]]
-    #適合度0の個体が次世代に残す所定個体数以下である場合の処理終了
+
     else:
+        # 50000世代まで行っても発生しなかった_(:3」∠)_
         raise NotImplementedError()
         # #適合度0の個体が次世代に残す個体より多い場合
         # #個体度0の個体のindividualsのインデックスをリストに格納
@@ -342,10 +391,9 @@ for terminal in range(MAXIMUM_TERMINAL):
 
         # for row in next_idx:
         #     next_individuals.append(individuals[row])
-    #次世代に残す個体の選定終了
+
     individuals = next_individuals
     print(terminal, end='\r')
-#一世代での操作終了
 
 print_stock_combinations(individuals, prefix="optimized_")
 print_risk_return(individuals, prefix="optimized_")
