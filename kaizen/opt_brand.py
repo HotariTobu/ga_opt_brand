@@ -1,7 +1,5 @@
 from array import array
-from collections import namedtuple
 import csv
-from itertools import combinations
 import random
 import copy
 import math
@@ -20,8 +18,6 @@ LOCUS = 4
 
 MAXIMUM_TERMINAL = 500
 """最大世代数"""
-
-PopulationItem = namedtuple('PopulationItem', ['risk', 'ret'])
 
 investment_ratio = 1 / LOCUS
 """投資比率(固定。個体内で均等)"""
@@ -134,16 +130,6 @@ def calc_gofs(risk_array: array[float], return_array: array[float]) -> array[int
 
     return gof_array
 #適合度計算関数終了
-
-#2点間の距離を計算する関数
-def calculate_distance(p: list[PopulationItem], idx_1, idx_2):
-    x1, y1 = p[idx_1]
-    x2, y2 = p[idx_2]
-
-    distance = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
-    return distance
-#2点間の距離の計算終了
-
 
 #main文
 
