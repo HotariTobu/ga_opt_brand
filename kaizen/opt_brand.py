@@ -72,7 +72,7 @@ def sigma(stock_namei, stock_namej, stock_dict, T, average_ri, average_rj):
 def precision(population: list[PopulationItem]):
     #計算した適合度を格納しておくリスト
     precision_ans =[0] * len(population)
-    for i in range(0, len(population)):
+    for i in range(len(population)):
         for j in range(i + 1, len(population)):
             #個体iが個体jよりリスクが低く, リターンが高い場合
             if (population[i][0] <= population[j][0]) and (population[i][1] >= population[j][1]):
