@@ -69,6 +69,9 @@ stock_dict = {}
 for i in stock_codes:
     ...
 
+T = len(stock_dict[stock_codes[0]])
+
+...
 
                     tmp = stock_codes[random.randint(0, len(stock_codes) - 1)]
 ```
@@ -92,6 +95,23 @@ locus = 4
 # ... メインのコード
 ```
 
+## ランダムな組み合わせを選ぶ
+
+```py
+    #重複が無いように初期個体を発生させる
+    while True:
+        tmp = []
+        for i in range(0, LOCUS):
+            tmp.append(stock_codes[random.randint(0, len(stock_codes) - 1)])
+        if len(tmp) == len(set(tmp)):
+            #発生させた個体を初期個体群にappend
+            inIndividuals.append(tmp)
+            break
+```
+
+## 使わない変数の名前はアンダースコアにする
+
+
 ## 不要なコピー
 
 ```py
@@ -106,6 +126,33 @@ while True:
     individuals = copy.deepcopy(nextIndividuals)
 
     # ループ終了
+```
+
+## 不要な宣言や代入
+
+```py
+#1世代前の個体群を保存する
+priorIndividuals = []
+
+...
+
+while True:
+
+    ...
+
+    #一世代前の個体群をコピーして保存する
+    priorIndividuals = copy.deepcopy(individuals)
+```
+
+## Rangeオブジェクトを使いまわす
+
+```py
+
+for terminal in range(MAXIMUM_TERMINAL):
+
+    ...
+
+    for _ in range(POPULATION):
 ```
 
 ## 複合代入演算子を使用する
@@ -156,5 +203,181 @@ for terminal in range(maximumTerminal):
 
 ```py
                 I1 = random.randint(0, population - 1)
-                I2 = random.randint(I1 + 1, I1 + population) % population
+                I2 = random.randint(I1 + 1, I1 + population - 1) % population
 ```
+
+## 不要な宣言、代入、コピー、
+
+```py
+            #交叉を行う
+            child1 = individuals[I1][:cLocus] + individuals[I2][cLocus:]
+            child2 = individuals[I2][:cLocus] + individuals[I1][cLocus:]
+
+            I1tmp = []
+            I2tmp = []
+            I1tmp = copy.deepcopy(child1)
+            I2tmp = copy.deepcopy(child2)
+            I1tup = tuple()
+            i2tup = tuple()
+            I1tup = tuple(I1tmp)
+            I2tup = tuple(I2tmp)
+
+            #交叉する際, 一つの個体内に同じ銘柄番号が格納されていないか確認する
+            if (len(I1tup) == len(set(I1tup))) and  (len(I2tup) == len(set(I2tup))):
+                individuals[I1] = child1
+                individuals[I2] = child2
+                break
+```
+
+
+## ループ範囲
+
+```py
+        while True:
+            #交叉する個体を示す変数
+            I1 = random.randint(0, POPULATION - 1)
+            I2 = random.randint(I1 + 1, I1 + POPULATION - 1) % POPULATION
+
+            #交叉する遺伝子座を選択
+            cLocus = random.randint(1, LOCUS - 1)
+
+            #交叉を行う
+            child1 = individuals[I1][:cLocus] + individuals[I2][cLocus:]
+            child2 = individuals[I2][:cLocus] + individuals[I1][cLocus:]
+
+            #交叉する際, 一つの個体内に同じ銘柄番号が格納されていないか確認する
+            if (len(child1) == len(set(child1))) and  (len(child2) == len(set(child2))):
+                individuals[I1] = child1
+                individuals[I2] = child2
+                break
+```
+
+## Early return
+
+```py
+    for i in population_range:
+        #各個体に対して5%の確率で突然変異を施す
+        if random.random() < 0.05:
+            #どの遺伝子座に突然変異を施すか決める
+            mutationLocus = random.randint(0, LOCUS - 1)
+            #ランダムに銘柄番号を決める 同じ銘柄番号の場合はやり直し
+            while True:
+                child = individuals[i]
+                #変更前と変更後の銘柄が同じじゃない場合銘柄を変更
+                while True:
+                    tmp = stock_codes[random.randint(0, len(stock_codes) - 1)]
+                    if tmp != child[mutationLocus]:
+                        child[mutationLocus] = tmp
+                        break
+                #遺伝子座の銘柄を変更完了
+
+                if len(child) == len(set(child)):
+                    individuals[i] = child
+                    break
+            #ランダムに銘柄番号決定終了
+```
+
+## randrange
+
+```py
+random.randint(0, LOCUS - 1)
+```
+
+```py
+random.randrange(LOCUS)
+```
+
+## choice
+
+```py
+stock_codes[random.randint(0, len(stock_codes) - 1)]
+```
+
+```py
+random.choice(stock_codes)
+```
+
+## ありえない条件分岐
+
+```py
+    for i in range(0, len(population)):
+        for j in range(i + 1, len(population)):
+            if i != j:
+                ...
+```
+
+## 不要なインクリメント
+
+```py
+            idx = 0
+            for i in population_range:
+                #適合度が同じのが現れるまでnextIndexにappendする
+                if sorted_individual_precision_list[POPULATION][1] == sorted_individual_precision_list[i][1]:
+                    break
+                idx += 1
+```
+
+## スライスの利用
+
+```py
+
+            sorted_risk_min = sorted(risk_min, key=lambda x: x[0])
+            idx = len(nextIndividuals)
+            for row in sorted_risk_min:
+                if idx == POPULATION:
+                    break
+                idx += 1
+                nextIndividuals.append(individuals[row[2]])
+```
+
+## 複数の値でのソート
+
+```py
+        #適合度が小さい順にprecision_listのインデックスを並べる
+        sorted_individual_precision_list = [(individuals[i], p) for i, p in sorted(enumerate(precision_list), key=lambda x: x[1])]
+        target_precision = sorted_individual_precision_list[POPULATION][1]
+
+        #同世代においてもリスクが小さい個体を優先的に選択する
+        for i in population_range:
+            #適合度が同じのが現れるまでnextIndexにappendする
+            if sorted_individual_precision_list[i][1] == target_precision:
+                break
+            nextIndividuals.append(sorted_individual_precision_list[i][0])
+
+        if len(nextIndividuals) < POPULATION:
+            #指定の適合度(切れ目の個体の適合度)の個体のインデックスを保存するリスト
+            precision_equal_idx: list[int] = []
+            for i in range(len(precision_list)):
+                if precision_list[i] == target_precision:
+                    precision_equal_idx.append(i)
+            #リスクの小さい順にnextIndexにappendしていくためのリストを作る
+            risk_min: list[tuple[float, float, int]] = []
+            for idx in precision_equal_idx:
+                risk_min.append(p[idx] + (idx,))
+            #risk_minリストをリスクの小さい順に並び替える
+            sorted_risk_min = sorted(risk_min, key=lambda x: x[0])
+            for i in range(POPULATION - len(nextIndividuals)):
+                row = sorted_risk_min[i]
+                nextIndividuals.append(individuals[row[2]])
+```
+
+```py
+```
+
+
+## itertools.combinationsを使う
+
+```py
+            for i in next_idx:
+                for j in next_idx:
+                    if (i < j):
+                        next_idx_distance.append((calculate_distance(p, i, j), i, j))
+```
+
+## globalキーワード
+
+## 10進数文字列と数値変換のコストは意外と重い
+
+3倍高速に
+
+## キャッシュ
