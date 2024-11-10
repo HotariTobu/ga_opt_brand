@@ -129,7 +129,9 @@ T = len(stock_dict[stock_codes[0]])
 #初期個体群
 initialIndividuals = []
 
-for _ in range(0,POPULATION):
+population_range = range(POPULATION)
+
+for _ in population_range:
     # 初期個体を発生させる
     individual = np.random.choice(stock_codes, LOCUS)
     individual = [str(stock_code) for stock_code in individual]
@@ -151,7 +153,7 @@ for terminal in range(MAXIMUM_TERMINAL):
     #一世代前の個体群をコピーして保存する
     priorIndividuals = copy.deepcopy(individuals)
     #Crossover
-    for _ in range(0, POPULATION):
+    for _ in population_range:
         while True:
             #交叉する個体を示す変数
             I1 = 0
@@ -190,7 +192,7 @@ for terminal in range(MAXIMUM_TERMINAL):
     #Crossover終了
 
     #Mutation
-    for i in range(0, POPULATION):
+    for i in population_range:
         #各個体に対して5%の確率で突然変異を施す
         if random.random() < 0.05:
             #どの遺伝子座に突然変異を施すか決める
@@ -233,13 +235,13 @@ for terminal in range(MAXIMUM_TERMINAL):
         sorted_indices = [i for i, _ in sorted(enumerate(precision_list), key=lambda x: x[1])]
         if precision_list[sorted_indices[POPULATION]] != precision_list[sorted_indices[POPULATION - 1]]:
             #一世代分の個体を取る際, 切れ目が異なる適合度の場合の処理
-            for i in range(POPULATION):
+            for i in population_range:
                 nextIndividuals.append(individuals[sorted_indices[i]])
         else:
             #一世代分の個体を取る際, 切れ目が同じ適合度の場合の処理
             #同世代においてもリスクが小さい個体を優先的に選択する
             idx = 0
-            for i in range(POPULATION):
+            for i in population_range:
                 #適合度が同じのが現れるまでnextIndexにappendする
                 if precision_list[sorted_indices[POPULATION]] == precision_list[sorted_indices[i]]:
                     break
