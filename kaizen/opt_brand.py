@@ -26,7 +26,7 @@ def calc_risk_return(individuals: list):
         ret = 0
         #一つの個体のリターンを計算
         for i in individual:
-            ret = ret + (r(i, stock_dict, T) * (1/LOCUS))
+            ret += (r(i, stock_dict, T) * (1/LOCUS))
         returns.append(ret)
     #リターンの計算終了
 
@@ -35,7 +35,7 @@ def calc_risk_return(individuals: list):
         ris = 0
         for i in individual:
             for j in individual:
-                ris = ris + (sigma(i, j, stock_dict, T, r(i, stock_dict, T), r(j, stock_dict, T)) * (1 / LOCUS) * (1 / LOCUS))
+                ris += (sigma(i, j, stock_dict, T, r(i, stock_dict, T), r(j, stock_dict, T)) * (1 / LOCUS) * (1 / LOCUS))
         risks.append(ris)
     #リスクの計算終了
 
@@ -51,7 +51,7 @@ def r(stock_name, stock_dict, T):
     for k in range(1, T):
         #当日の収益率
         erning = (float(stock_dict[stock_name][k][4]) - float(stock_dict[stock_name][k-1][4])) / float(stock_dict[stock_name][k-1][4])
-        erning_sum = erning_sum + erning
+        erning_sum += erning
     average = erning_sum / (T-1)
     return average
 
@@ -63,7 +63,7 @@ def sigma(stock_namei, stock_namej, stock_dict, T, average_ri, average_rj):
         erning_i = (float(stock_dict[stock_namei][k][4]) - float(stock_dict[stock_namei][k-1][4])) / float(stock_dict[stock_namei][k-1][4])
         erning_j = (float(stock_dict[stock_namej][k][4]) - float(stock_dict[stock_namej][k-1][4])) / float(stock_dict[stock_namej][k-1][4])
         distinction = (erning_i - average_ri) * (erning_j - average_rj)
-        distinction_sum = distinction_sum + distinction
+        distinction_sum += distinction
     CoV = distinction_sum / (T-1)
     #print(CoV)
     return CoV
@@ -79,11 +79,11 @@ def precision(population: list[PopulationItem]):
 
             #個体iが個体jよりリスクが低く, リターンが高い場合
             if (risk_i <= risk_i) and (ret_i >= ret_j):
-                precision_ans[j] = precision_ans[j] + 1
+                precision_ans[j] += 1
 
             #個体jが個体iよりリスクが低く, リターンが高い場合
             if (risk_j <= risk_i) and (ret_j >= ret_i):
-                precision_ans[i] = precision_ans[i] + 1
+                precision_ans[i] += 1
 
     return precision_ans
 #適合度計算関数終了
@@ -203,7 +203,7 @@ for terminal in range(MAXIMUM_TERMINAL):
     #Mutation終了
 
     #一世代前と現代の世代を一つのリストに入れる
-    individuals.extend(priorIndividuals)
+    individuals += priorIndividuals
 
     #Evaluation
     p = calc_risk_return(individuals)
@@ -233,7 +233,7 @@ for terminal in range(MAXIMUM_TERMINAL):
                 #適合度が同じのが現れるまでnextIndexにappendする
                 if sorted_individual_precision_list[POPULATION][1] == sorted_individual_precision_list[i][1]:
                     break
-                idx = idx + 1
+                idx += 1
                 nextIndividuals.append(sorted_individual_precision_list[i][0])
             #指定の適合度(切れ目の個体の適合度)の個体のインデックスを保存するリスト
             precision_equal_idx: list[int] = []
@@ -250,7 +250,7 @@ for terminal in range(MAXIMUM_TERMINAL):
             for row in sorted_risk_min:
                 if idx == POPULATION:
                     break
-                idx = idx + 1
+                idx += 1
                 nextIndividuals.append(individuals[row[2]])
     #適合度0の個体が次世代に残す所定個体数以下である場合の処理終了
     else:
