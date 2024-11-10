@@ -1,3 +1,4 @@
+from collections import namedtuple
 import csv
 import random
 import copy
@@ -12,6 +13,8 @@ LOCUS = 4
 
 MAXIMUM_TERMINAL = 500
 """最大世代数"""
+
+PopulationItem = namedtuple('PopulationItem', ['risk', 'ret'])
 
 def calc_risk_return(individuals: list):
     #リターンとリスクを保存するリスト, 行は個体に対応
@@ -37,7 +40,7 @@ def calc_risk_return(individuals: list):
     #リスクの計算終了
 
     #[(risk, return), (risk, return), ...]に形を整える
-    p = [(x, y) for x, y in zip(risks, returns)]
+    p = [PopulationItem(x, y) for x, y in zip(risks, returns)]
 
     return p
 
@@ -66,7 +69,7 @@ def sigma(stock_namei, stock_namej, stock_dict, T, average_ri, average_rj):
     return CoV
 
 #適合度計算関数
-def precision(population):
+def precision(population: list[PopulationItem]):
     #計算した適合度を格納しておくリスト
     precision_ans =[0] * len(population)
     for i in range(0, len(population)):
@@ -84,7 +87,7 @@ def precision(population):
 #適合度計算関数終了
 
 #2点間の距離を計算する関数
-def calculate_distance(p, idx_1, idx_2):
+def calculate_distance(p: list[PopulationItem], idx_1, idx_2):
     x1, y1 = p[idx_1]
     x2, y2 = p[idx_2]
 
@@ -127,7 +130,7 @@ T = len(stock_dict[stock_codes[0]])
 #Gen Initial individuals.
 
 #初期個体群
-initialIndividuals = []
+initialIndividuals: list[list[StockCode]] = []
 
 population_range = range(POPULATION)
 
@@ -210,7 +213,7 @@ for terminal in range(MAXIMUM_TERMINAL):
     precision_list = precision(p)
 
     #次世代に残す個体をリストで保存
-    nextIndividuals = []
+    nextIndividuals: list[list[StockCode]] = []
 
     #適合度0の個体数が次世代に残す所定個体数(POPULATION)以下であるかどうか判定
     if precision_list.count(0) <= POPULATION:
@@ -231,12 +234,12 @@ for terminal in range(MAXIMUM_TERMINAL):
                 idx = idx + 1
                 nextIndividuals.append(individuals[sorted_indices[i]])
             #指定の適合度(切れ目の個体の適合度)の個体のインデックスを保存するリスト
-            precision_equal_idx = []
+            precision_equal_idx: list[int] = []
             for i in range(len(precision_list)):
                 if precision_list[i] == precision_list[sorted_indices[idx]]:
                     precision_equal_idx.append(i)
             #リスクの小さい順にnextIndexにappendしていくためのリストを作る
-            risk_min = []
+            risk_min: list[tuple[float, float, int]] = []
             for idx in precision_equal_idx:
                 risk_min.append(p[idx] + (idx,))
             #risk_minリストをリスクの小さい順に並び替える
@@ -251,7 +254,7 @@ for terminal in range(MAXIMUM_TERMINAL):
     else:
         #適合度0の個体が次世代に残す個体より多い場合
         #個体度0の個体のindividualsのインデックスをリストに格納
-        next_idx = []
+        next_idx: list[int] = []
         for i in range(len(precision_list)):
             if precision_list[i] == 0:
                 next_idx.append(i)
@@ -262,7 +265,7 @@ for terminal in range(MAXIMUM_TERMINAL):
                 break
             #next_idxのすべての組み合わせに対して距離を保存するリスト
             #リストの形式は[(距離, 個体のインデックス1, 個体のインデックス2), ...]
-            next_idx_distance = []
+            next_idx_distance: list[tuple[float, int, int]] = []
             #Step 1. next_idxのすべての組み合わせに対して距離を計算, リストに保存
             for i in next_idx:
                 for j in next_idx:
@@ -271,8 +274,8 @@ for terminal in range(MAXIMUM_TERMINAL):
             #Step2. もっとも距離の短い2点を見つけ出しmin_distanceにタプル形式で代入する
             min_distance = min(next_idx_distance, key=lambda x: x[0])
             #Step3. もっとも近接している2個体それぞれの個体に対して, 2番目に近接している個体との距離を計算
-            min_dis1 = []
-            min_dis2 = []
+            min_dis1: list[tuple[float, int, int]] = []
+            min_dis2: list[tuple[float, int, int]] = []
             for i in range(len(next_idx)):
                 if (i != min_distance[1]) and (i != min_distance[2]):
                     min_dis1.append((calculate_distance(p, min_distance[1], i), min_distance[1], i))
