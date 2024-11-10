@@ -247,7 +247,7 @@ for terminal in range(MAXIMUM_TERMINAL):
                 risk_min.append(p[idx] + (idx,))
             #risk_minリストをリスクの小さい順に並び替える
             sorted_risk_min = sorted(risk_min, key=lambda x: x[0])
-            for i in range(len(nextIndividuals), POPULATION):
+            for i in range(POPULATION - len(nextIndividuals)):
                 row = sorted_risk_min[i]
                 nextIndividuals.append(individuals[row[2]])
     #適合度0の個体が次世代に残す所定個体数以下である場合の処理終了
