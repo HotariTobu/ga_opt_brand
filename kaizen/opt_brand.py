@@ -7,6 +7,9 @@ from statistics import mean
 
 random.seed(0)
 
+STOCK_LIST_FILEPATH = "stock.txt"
+STOCK_DATA_FILEPATH_TEMPLATE = "{}.csv"
+
 CLOSING_COL_INDEX = 4
 """CSVデータファイルの終値の列番号"""
 
@@ -21,6 +24,47 @@ MAXIMUM_TERMINAL = 500
 
 investment_ratio = 1 / LOCUS_NUM
 """投資比率(固定。個体内で均等)"""
+
+stock_codes: list[str] = []
+"""銘柄コードの一覧"""
+
+roi_array_dict: dict[int, array[float]] = {}
+"""
+各銘柄の収益率の配列の辞書
+収益率の配列は日付の降順となっている
+"""
+
+def closing_to_roi(closing_array: array[float]) -> array[float]:
+    """終値の配列から収益率の配列を作成する。
+
+    Args:
+        closing_array (array[float]): 終値の配列。日付の降順である必要がある。
+
+    Returns:
+        array[float]: 収益率の配列。終値の配列の大きさ - 1の大きさになる
+    """
+
+    len_roi_array = len(closing_array) - 1
+    roi_array = array('f', [0] * len_roi_array)
+
+    for i in range(len_roi_array):
+        roi_array[i] = (closing_array[i] - closing_array[i + 1]) / closing_array[i + 1]
+
+    return roi_array
+
+with open(STOCK_LIST_FILEPATH, "r") as file:
+    for i, line in enumerate(file):
+        stock_code = line.strip()
+        stock_codes.append(stock_code)
+
+        with open(STOCK_DATA_FILEPATH_TEMPLATE.format(stock_code), "r") as csv_file:
+            csv_file.readline()
+            csv_reader = csv.reader(csv_file)
+            closing_array = array('f', [float(row[CLOSING_COL_INDEX]) for row in csv_reader])
+            roi_array_dict[i] = closing_to_roi(closing_array)
+
+day_count = len(roi_array_dict[0])
+"""収益率が計算できた日の数"""
 
 average_roi_dict: dict[int, float] = {}
 """平均収益率のキャッシュ"""
@@ -39,11 +83,13 @@ def get_average_roi(i: int) -> float:
         float: 指定された銘柄の収益率の平均
     """
 
+    global roi_array_dict, average_roi_dict
+
     if i in average_roi_dict:
         return average_roi_dict[i]
 
-    roi_list = roi_list_dict[i]
-    average_roi = mean(roi_list)
+    roi_array = roi_array_dict[i]
+    average_roi = mean(roi_array)
     average_roi_dict[i] = average_roi
     return average_roi
 
@@ -59,16 +105,18 @@ def get_cov_roi(i: int, j: int) -> float:
         float: 指定された2つの銘柄の収益率の共分散
     """
 
+    global roi_array_dict, day_count, cov_roi_dict
+
     key = frozenset({i, j})
     if key in cov_roi_dict:
         return cov_roi_dict[key]
 
     # cov(X, Y) = E[(X - E[X])(Y - E[Y])] = E[XY] - E[X]E[Y]
 
-    roi_list_i = roi_list_dict[i]
-    roi_list_j = roi_list_dict[j]
+    roi_array_i = roi_array_dict[i]
+    roi_array_j = roi_array_dict[j]
     sum_roi_ij = 0
-    for roi_i, roi_j in zip(roi_list_i, roi_list_j):
+    for roi_i, roi_j in zip(roi_array_i, roi_array_j):
         sum_roi_ij += roi_i * roi_j
     average_roi_ij = sum_roi_ij / day_count
 
@@ -82,6 +130,8 @@ def get_cov_roi(i: int, j: int) -> float:
     return cov_roi
 
 def calc_risks(individuals: list[list[int]]) -> array[float]:
+    global investment_ratio
+
     risk_array = array('f')
 
     for individual in individuals:
@@ -96,6 +146,8 @@ def calc_risks(individuals: list[list[int]]) -> array[float]:
     return risk_array
 
 def calc_returns(individuals: list[list[int]]) -> array[float]:
+    global investment_ratio
+
     return_array = array('f')
 
     for individual in individuals:
@@ -135,61 +187,18 @@ def calc_gofs(risk_array: array[float], return_array: array[float]) -> array[int
 
 #Readind data.
 
-stock_codes: list[str] = []
-"""銘柄コードの一覧"""
-
-roi_list_dict: dict[int, array[float]] = {}
-"""
-各銘柄の収益率のリストの辞書
-収益率のリストは日付の降順となっている
-"""
-
-roi_list_dict: dict[int, array[float]] = {}
-
-def closing_to_roi(closing_list: array[float]) -> array[float]:
-    """終値のリストから収益率のリストを作成する。
-
-    Args:
-        closing_list (array[float]): 終値のリスト。日付の降順である必要がある。
-
-    Returns:
-        array[float]: 収益率のリスト。終値のリストの大きさ - 1の大きさになる
-    """
-
-    len_roi_list = len(closing_list) - 1
-    roi_list = array('f', [0] * len_roi_list)
-
-    for i in range(len_roi_list):
-        roi_list[i] = (closing_list[i] - closing_list[i + 1]) / closing_list[i + 1]
-
-    return roi_list
-
-with open("stock.txt", "r") as file:
-    for i, line in enumerate(file):
-        stock_code = line.strip()
-        stock_codes.append(stock_code)
-
-        with open(stock_code + ".csv", "r", encoding = "utf-8") as csv_file:
-            csv_file.readline()
-            csv_reader = csv.reader(csv_file)
-            closing_list = array('f', [float(row[CLOSING_COL_INDEX]) for row in csv_reader])
-            roi_list_dict[i] = closing_to_roi(closing_list)
-
-day_count = len(roi_list_dict[0])
-"""収益率が計算できた日の数"""
-
 #Gen Initial individuals.
 
 #初期個体群
-initialIndividuals: list[list[int]] = []
+initial_individuals: list[list[int]] = []
 
 population_range = range(POPULATION)
-
 stock_range = range(len(stock_codes))
+
 for _ in population_range:
     # 初期個体を発生させる
     individual = random.sample(stock_range, LOCUS_NUM)
-    initialIndividuals.append(individual)
+    initial_individuals.append(individual)
 
 def print_risk_return(individuals: list[list[int]], prefix = ''):
     risk_array = calc_risks(individuals)
@@ -197,19 +206,19 @@ def print_risk_return(individuals: list[list[int]], prefix = ''):
     print(prefix + 'risk_array =', risk_array)
     print(prefix + 'return_array =', return_array)
 
-print("初期個体群 =", initialIndividuals)
-print_risk_return(initialIndividuals, prefix="initial_")
+print("初期個体群 =", initial_individuals)
+print_risk_return(initial_individuals, prefix="initial_")
 
 
 #多目的GA
 
 #現在の個体群を保存するリスト, [['1', '2', '3'], ['3', '5', '6']]のように管理されている
-individuals: list[list[int]] = initialIndividuals
+individuals: list[list[int]] = initial_individuals
 
 for terminal in range(MAXIMUM_TERMINAL):
     #Individuals replication
     #一世代前の個体群をコピーして保存する
-    priorIndividuals = copy.deepcopy(individuals)
+    prev_individuals = copy.deepcopy(individuals)
     #Crossover
     for _ in population_range:
         while True:
@@ -238,15 +247,15 @@ for terminal in range(MAXIMUM_TERMINAL):
             continue
 
         #どの遺伝子座に突然変異を施すか決める
-        mutationLocus = random.randrange(LOCUS_NUM)
+        mutation_locus = random.randrange(LOCUS_NUM)
         #ランダムに銘柄番号を決める 同じ銘柄番号の場合はやり直し
         while True:
             child = individuals[i]
             #変更前と変更後の銘柄が同じじゃない場合銘柄を変更
             while True:
                 tmp = random.choice(stock_range)
-                if tmp != child[mutationLocus]:
-                    child[mutationLocus] = tmp
+                if tmp != child[mutation_locus]:
+                    child[mutation_locus] = tmp
                     break
             #遺伝子座の銘柄を変更完了
 
@@ -257,7 +266,7 @@ for terminal in range(MAXIMUM_TERMINAL):
     #Mutation終了
 
     #一世代前と現代の世代を一つのリストに入れる
-    individuals += priorIndividuals
+    individuals += prev_individuals
 
     #Evaluation
     risk_array = calc_risks(individuals)
@@ -270,12 +279,12 @@ for terminal in range(MAXIMUM_TERMINAL):
     gof_array = calc_gofs(risk_array, return_array)
 
     #次世代に残す個体をリストで保存
-    nextIndividuals: list[list[int]] = []
+    next_individuals: list[list[int]] = []
 
     #適合度0の個体数が次世代に残す所定個体数(POPULATION)以下であるかどうか判定
     if gof_array.count(0) <= POPULATION:
         #適合度が小さい順、リスクが小さい順に個体を選ぶ
-        nextIndividuals = [individual for _, _, individual in sorted(zip(gof_array, risk_array, individuals))[:POPULATION]]
+        next_individuals = [individual for _, _, individual in sorted(zip(gof_array, risk_array, individuals))[:POPULATION]]
     #適合度0の個体が次世代に残す所定個体数以下である場合の処理終了
     else:
         raise NotImplementedError()
@@ -318,9 +327,9 @@ for terminal in range(MAXIMUM_TERMINAL):
         # #next_idxの要素数がpopulationと等しくなるまでループ完了
 
         # for row in next_idx:
-        #     nextIndividuals.append(individuals[row])
+        #     next_individuals.append(individuals[row])
     #次世代に残す個体の選定終了
-    individuals = nextIndividuals
+    individuals = next_individuals
     print(terminal, end='\r')
 #一世代での操作終了
 
