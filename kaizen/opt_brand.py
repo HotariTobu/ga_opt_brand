@@ -68,10 +68,13 @@ def calculate_distance(p, idx_1, idx_2):
 
 #Readind data.
 
-stock_codes = []
+type StockCode = str
+"""銘柄コード"""
+
+stock_codes: list[StockCode] = []
 """銘柄コードの一覧"""
 
-stock_dict = {}
+stock_dict: dict[StockCode, list[list[str]]] = {}
 """
 株式データ[StockCode][Date][Column]
 
