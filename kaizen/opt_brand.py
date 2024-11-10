@@ -220,32 +220,8 @@ for terminal in range(MAXIMUM_TERMINAL):
 
     #適合度0の個体数が次世代に残す所定個体数(POPULATION)以下であるかどうか判定
     if precision_list.count(0) <= POPULATION:
-        #適合度が小さい順にprecision_listのインデックスを並べる
-        sorted_individual_precision_list = [(individuals[i], p) for i, p in sorted(enumerate(precision_list), key=lambda x: x[1])]
-        target_precision = sorted_individual_precision_list[POPULATION][1]
-
-        #同世代においてもリスクが小さい個体を優先的に選択する
-        for i in population_range:
-            #適合度が同じのが現れるまでnextIndexにappendする
-            if sorted_individual_precision_list[i][1] == target_precision:
-                break
-            nextIndividuals.append(sorted_individual_precision_list[i][0])
-
-        if len(nextIndividuals) < POPULATION:
-            #指定の適合度(切れ目の個体の適合度)の個体のインデックスを保存するリスト
-            precision_equal_idx: list[int] = []
-            for i in range(len(precision_list)):
-                if precision_list[i] == target_precision:
-                    precision_equal_idx.append(i)
-            #リスクの小さい順にnextIndexにappendしていくためのリストを作る
-            risk_min: list[tuple[float, float, int]] = []
-            for idx in precision_equal_idx:
-                risk_min.append(p[idx] + (idx,))
-            #risk_minリストをリスクの小さい順に並び替える
-            sorted_risk_min = sorted(risk_min, key=lambda x: x[0])
-            for i in range(POPULATION - len(nextIndividuals)):
-                row = sorted_risk_min[i]
-                nextIndividuals.append(individuals[row[2]])
+        #適合度が小さい順、リスクが小さい順に個体を選ぶ
+        nextIndividuals = [individual for _, _, individual in sorted(zip(precision_list, p, individuals), key=lambda x: x)[:POPULATION]]
     #適合度0の個体が次世代に残す所定個体数以下である場合の処理終了
     else:
         #適合度0の個体が次世代に残す個体より多い場合
