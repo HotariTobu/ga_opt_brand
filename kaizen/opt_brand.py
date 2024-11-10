@@ -22,6 +22,9 @@ LOCUS_NUM = 4
 MAXIMUM_TERMINAL = 500
 """最大世代数"""
 
+MUTATION_RATE = 0.05
+"""突然変異を起こす確率"""
+
 investment_ratio = 1 / LOCUS_NUM
 """投資比率(固定。個体内で均等)"""
 
@@ -160,6 +163,47 @@ def calc_returns(individuals: list[list[int]]) -> array[float]:
 
     return return_array
 
+def crossover(individuals: list[list[int]]):
+    for _ in population_range:
+        while True:
+            #交叉する個体を示す変数
+            i, j = random.sample(population_range, 2)
+            individual_i = individuals[i]
+            individual_j = individuals[j]
+
+            #交叉する遺伝子座を選択
+            locus = random.randrange(1, LOCUS_NUM)
+
+            #交叉を行う
+            new_individual_i = individual_i[:locus] + individual_j[locus:]
+            new_individual_j = individual_j[:locus] + individual_i[locus:]
+
+            #交叉する際, 一つの個体内に同じ銘柄番号が格納されていないか確認する
+            if len(new_individual_i) == len(set(new_individual_i)) and len(new_individual_j) == len(set(new_individual_j)):
+                individuals[i] = new_individual_i
+                individuals[j] = new_individual_j
+                break
+
+def mutation(individuals: list[list[int]]):
+    for i in population_range:
+        if random.random() > MUTATION_RATE:
+            continue
+
+        new_individual = individuals[i].copy()
+
+        #ランダムに銘柄番号を決める 同じ銘柄番号の場合はやり直し
+        while True:
+            #変更前と変更後の銘柄が同じじゃない場合銘柄を変更
+            stock_index = random.choice(stock_range)
+            if stock_index not in new_individual:
+                break
+
+        #どの遺伝子座に突然変異を施すか決める
+        locus = random.randrange(LOCUS_NUM)
+
+        new_individual[locus] = stock_index
+        individuals[i] = new_individual
+
 #適合度計算関数
 def calc_gofs(risk_array: array[float], return_array: array[float]) -> array[int]:
     len_gof_array = len(risk_array)
@@ -220,50 +264,8 @@ for terminal in range(MAXIMUM_TERMINAL):
     #一世代前の個体群をコピーして保存する
     prev_individuals = individuals.copy()
 
-    #Crossover
-    for _ in population_range:
-        while True:
-            #交叉する個体を示す変数
-            i, j = random.sample(population_range, 2)
-            individual_i = individuals[i]
-            individual_j = individuals[j]
-
-            #交叉する遺伝子座を選択
-            locus = random.randrange(1, LOCUS_NUM)
-
-            #交叉を行う
-            new_individual_i = individual_i[:locus] + individual_j[locus:]
-            new_individual_j = individual_j[:locus] + individual_i[locus:]
-
-            #交叉する際, 一つの個体内に同じ銘柄番号が格納されていないか確認する
-            if len(new_individual_i) == len(set(new_individual_i)) and len(new_individual_j) == len(set(new_individual_j)):
-                individuals[i] = new_individual_i
-                individuals[j] = new_individual_j
-                break
-    #Crossover終了
-
-    #Mutation
-    for i in population_range:
-        #各個体に対して5%の確率で突然変異を施す
-        if random.random() > 0.05:
-            continue
-
-        new_individual = individuals[i].copy()
-
-        #ランダムに銘柄番号を決める 同じ銘柄番号の場合はやり直し
-        while True:
-            #変更前と変更後の銘柄が同じじゃない場合銘柄を変更
-            stock_index = random.choice(stock_range)
-            if stock_index not in new_individual:
-                break
-
-        #どの遺伝子座に突然変異を施すか決める
-        locus = random.randrange(LOCUS_NUM)
-
-        new_individual[locus] = stock_index
-        individuals[i] = new_individual
-        #ランダムに銘柄番号決定終了
-    #Mutation終了
+    crossover(individuals)
+    mutation(individuals)
 
     #一世代前と現代の世代を一つのリストに入れる
     individuals += prev_individuals
