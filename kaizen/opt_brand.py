@@ -3,14 +3,14 @@ import random
 import copy
 import math
 
-#一世代の個体数
 POPULATION = 50
+"""一世代の個体数"""
 
-#遺伝子座の数
 LOCUS = 4
+"""遺伝子座の数"""
 
-#最大世代数
 MAXIMUM_TERMINAL = 500
+"""最大世代数"""
 
 #平均収益率を計算する関数
 def r(stock_name, stock_dict, T):
