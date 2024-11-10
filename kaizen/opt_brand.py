@@ -179,7 +179,7 @@ for terminal in range(MAXIMUM_TERMINAL):
             continue
 
         #どの遺伝子座に突然変異を施すか決める
-        mutationLocus = random.randint(0, LOCUS - 1)
+        mutationLocus = random.randrange(LOCUS)
         #ランダムに銘柄番号を決める 同じ銘柄番号の場合はやり直し
         while True:
             child = individuals[i]
