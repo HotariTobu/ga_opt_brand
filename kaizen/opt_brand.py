@@ -1,11 +1,9 @@
 from collections import namedtuple
 import csv
 from itertools import combinations
-from pickle import POP
 import random
 import copy
 import math
-import numpy as np
 
 random.seed(0)
 
