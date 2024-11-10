@@ -7,6 +7,8 @@ import copy
 import math
 import numpy as np
 
+random.seed(0)
+
 POPULATION = 50
 """一世代の個体数"""
 
