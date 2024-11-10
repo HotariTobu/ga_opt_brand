@@ -3,6 +3,15 @@ import random
 import copy
 import math
 
+#一世代の個体数
+POPULATION = 50
+
+#遺伝子座の数
+LOCUS = 4
+
+#最大世代数
+MAXIMUM_TERMINAL = 500
+
 #平均収益率を計算する関数
 def r(stock_name, stock_dict, T):
     #各日の収益率を計算して足し合わせる
@@ -86,17 +95,11 @@ T = len(stock_dict[stock_codes[0]])
 #初期個体群
 inIndividuals = []
 
-#一世代の個体数
-population = 50
-
-#遺伝子座の数
-locus = 4
-
-for i in range(0,population):
+for i in range(0,POPULATION):
     #重複が無いように初期個体を発生させる
     while True:
         tmp = []
-        for i in range(0, locus):
+        for i in range(0, LOCUS):
             tmp.append(stock_codes[random.randint(0, len(stock_codes) - 1)])
         if len(tmp) == len(set(tmp)):
             #発生させた個体を初期個体群にappend
@@ -115,7 +118,7 @@ for individual in inIndividuals:
     ret = 0
     #一つの個体のリターンを計算
     for i in individual:
-        ret = ret + (r(i, stock_dict, T) * (1/locus))
+        ret = ret + (r(i, stock_dict, T) * (1/LOCUS))
     returns.append(ret)
 #リターンの計算終了
 
@@ -124,7 +127,7 @@ for individual in inIndividuals:
     ris = 0
     for i in individual:
         for j in individual:
-            ris = ris + (sigma(i, j, stock_dict, T, r(i, stock_dict, T), r(j, stock_dict, T)) * (1 / locus) * (1 / locus))
+            ris = ris + (sigma(i, j, stock_dict, T, r(i, stock_dict, T), r(j, stock_dict, T)) * (1 / LOCUS) * (1 / LOCUS))
     risks.append(ris)
 #リスクの計算終了
 
@@ -145,11 +148,10 @@ priorIndividuals = []
 
 #世代数
 terminal = 0
-maximumTerminal = 500
 
 while True:
     #Terminal condition.
-    if maximumTerminal == terminal:
+    if MAXIMUM_TERMINAL == terminal:
         #世代数が最大世代数なら終了
         break
 
@@ -157,7 +159,7 @@ while True:
     #一世代前の個体群をコピーして保存する
     priorIndividuals = copy.deepcopy(individuals)
     #Crossover
-    for i in range(0, population):
+    for i in range(0, POPULATION):
         while True:
             #交叉する個体を示す変数
             I1 = 0
@@ -165,15 +167,15 @@ while True:
 
             #交叉する個体を選定. 同一個体が選ばれている場合はやり直し
             while True:
-                I1 = random.randint(0, population - 1)
-                I2 = random.randint(0, population - 1)
+                I1 = random.randint(0, POPULATION - 1)
+                I2 = random.randint(0, POPULATION - 1)
                 if I1 != I2:
                     break
             #交叉する個体の選定終了
 
             #交叉する遺伝子座を選択
             cLocus = 0
-            cLocus = random.randint(1, locus - 1)
+            cLocus = random.randint(1, LOCUS - 1)
 
             #交叉を行う
             child1 = individuals[I1][:cLocus] + individuals[I2][cLocus:]
@@ -196,11 +198,11 @@ while True:
     #Crossover終了
 
     #Mutation
-    for i in range(0, population):
+    for i in range(0, POPULATION):
         #各個体に対して5%の確率で突然変異を施す
         if random.random() < 0.05:
             #どの遺伝子座に突然変異を施すか決める
-            mutationLocus = random.randint(0, locus - 1)
+            mutationLocus = random.randint(0, LOCUS - 1)
             #ランダムに銘柄番号を決める 同じ銘柄番号の場合はやり直し
             while True:
                 child = individuals[i]
@@ -231,7 +233,7 @@ while True:
         ret = 0
         #一つの個体のリターンを計算
         for i in individual:
-            ret = ret + (r(i, stock_dict, T) * (1/locus))
+            ret = ret + (r(i, stock_dict, T) * (1/LOCUS))
         returns.append(ret)
     #リターンの計算終了
 
@@ -240,7 +242,7 @@ while True:
         ris = 0
         for i in individual:
             for j in individual:
-                ris = ris + (sigma(i, j, stock_dict, T, r(i, stock_dict, T), r(j, stock_dict, T)) * (1 / locus) * (1 / locus))
+                ris = ris + (sigma(i, j, stock_dict, T, r(i, stock_dict, T), r(j, stock_dict, T)) * (1 / LOCUS) * (1 / LOCUS))
         risks.append(ris)
     #リスクの計算終了
 
@@ -256,21 +258,21 @@ while True:
     #次世代に残す個体をリストで保存
     nextIndividuals = []
 
-    #適合度0の個体数が次世代に残す所定個体数(population)以下であるかどうか判定
-    if precision_list.count(0) <= population:
+    #適合度0の個体数が次世代に残す所定個体数(POPULATION)以下であるかどうか判定
+    if precision_list.count(0) <= POPULATION:
         #適合度が小さい順にprecision_listのインデックスを並べる
         sorted_indices = [i for i, _ in sorted(enumerate(precision_list), key=lambda x: x[1])]
-        if precision_list[sorted_indices[population]] != precision_list[sorted_indices[population - 1]]:
+        if precision_list[sorted_indices[POPULATION]] != precision_list[sorted_indices[POPULATION - 1]]:
             #一世代分の個体を取る際, 切れ目が異なる適合度の場合の処理
-            for i in range(population):
+            for i in range(POPULATION):
                 nextIndividuals.append(individuals[sorted_indices[i]])
         else:
             #一世代分の個体を取る際, 切れ目が同じ適合度の場合の処理
             #同世代においてもリスクが小さい個体を優先的に選択する
             idx = 0
-            for i in range(population):
+            for i in range(POPULATION):
                 #適合度が同じのが現れるまでnextIndexにappendする
-                if precision_list[sorted_indices[population]] == precision_list[sorted_indices[i]]:
+                if precision_list[sorted_indices[POPULATION]] == precision_list[sorted_indices[i]]:
                     break
                 idx = idx + 1
                 nextIndividuals.append(individuals[sorted_indices[i]])
@@ -287,7 +289,7 @@ while True:
             sorted_risk_min = sorted(risk_min, key=lambda x: x[0])
             idx = len(nextIndividuals)
             for row in sorted_risk_min:
-                if idx == population:
+                if idx == POPULATION:
                     break
                 idx = idx + 1
                 nextIndividuals.append(individuals[row[2]])
@@ -302,7 +304,7 @@ while True:
 
         #next_idxの要素数がpopulationと等しくなるまで繰り返す
         while True:
-            if len(next_idx) == population:
+            if len(next_idx) == POPULATION:
                 break
             #next_idxのすべての組み合わせに対して距離を保存するリスト
             #リストの形式は[(距離, 個体のインデックス1, 個体のインデックス2), ...]
@@ -355,7 +357,7 @@ for individual in individuals:
     ret = 0
     #一つの個体のリターンを計算
     for i in individual:
-        ret = ret + (r(i, stock_dict, T) * (1/locus))
+        ret = ret + (r(i, stock_dict, T) * (1/LOCUS))
     returns.append(ret)
 #リターンの計算終了
 
@@ -364,7 +366,7 @@ for individual in individuals:
     ris = 0
     for i in individual:
         for j in individual:
-            ris = ris + (sigma(i, j, stock_dict, T, r(i, stock_dict, T), r(j, stock_dict, T)) * (1 / locus) * (1 / locus))
+            ris = ris + (sigma(i, j, stock_dict, T, r(i, stock_dict, T), r(j, stock_dict, T)) * (1 / LOCUS) * (1 / LOCUS))
     risks.append(ris)
 #リスクの計算終了
 
