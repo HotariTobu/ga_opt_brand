@@ -1,5 +1,6 @@
 from collections import namedtuple
 import csv
+from itertools import combinations
 from pickle import POP
 import random
 import copy
@@ -237,10 +238,8 @@ for terminal in range(MAXIMUM_TERMINAL):
             #リストの形式は[(距離, 個体のインデックス1, 個体のインデックス2), ...]
             next_idx_distance: list[tuple[float, int, int]] = []
             #Step 1. next_idxのすべての組み合わせに対して距離を計算, リストに保存
-            for i in next_idx:
-                for j in next_idx:
-                    if (i < j):
-                        next_idx_distance.append((calculate_distance(p, i, j), i, j))
+            for i, j in combinations(next_idx, 2):
+                next_idx_distance.append((calculate_distance(p, i, j), i, j))
             #Step2. もっとも距離の短い2点を見つけ出しmin_distanceにタプル形式で代入する
             min_distance = min(next_idx_distance, key=lambda x: x[0])
             #Step3. もっとも近接している2個体それぞれの個体に対して, 2番目に近接している個体との距離を計算
