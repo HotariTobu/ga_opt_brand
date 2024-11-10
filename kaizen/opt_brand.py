@@ -13,6 +13,34 @@ LOCUS = 4
 MAXIMUM_TERMINAL = 500
 """最大世代数"""
 
+def calc_risk_return(individuals: list):
+    #リターンとリスクを保存するリスト, 行は個体に対応
+    returns = []
+    risks = []
+
+    #リターンを計算 投資比率は1/locusで固定(個体内で均等な投資比率)
+    for individual in individuals:
+        ret = 0
+        #一つの個体のリターンを計算
+        for i in individual:
+            ret = ret + (r(i, stock_dict, T) * (1/LOCUS))
+        returns.append(ret)
+    #リターンの計算終了
+
+    #リスクを計算 投資比率は1/locusで固定(個体内で均等な投資比率)
+    for individual in individuals:
+        ris = 0
+        for i in individual:
+            for j in individual:
+                ris = ris + (sigma(i, j, stock_dict, T, r(i, stock_dict, T), r(j, stock_dict, T)) * (1 / LOCUS) * (1 / LOCUS))
+        risks.append(ris)
+    #リスクの計算終了
+
+    #[(risk, return), (risk, return), ...]に形を整える
+    p = [(x, y) for x, y in zip(risks, returns)]
+
+    return p
+
 #平均収益率を計算する関数
 def r(stock_name, stock_dict, T):
     #各日の収益率を計算して足し合わせる
@@ -110,33 +138,7 @@ for _ in range(0,POPULATION):
 print("初期個体群 = ")
 print(initialIndividuals)
 print("初期個体群のリスクとリターン = ")
-#Evaluation
-#リターンとリスクを保存するリスト, 行は個体に対応
-returns = []
-risks = []
-
-#リターンを計算 投資比率は1/locusで固定(個体内で均等な投資比率)
-for individual in initialIndividuals:
-    ret = 0
-    #一つの個体のリターンを計算
-    for i in individual:
-        ret = ret + (r(i, stock_dict, T) * (1/LOCUS))
-    returns.append(ret)
-#リターンの計算終了
-
-#リスクを計算 投資比率は1/locusで固定(個体内で均等な投資比率)
-for individual in initialIndividuals:
-    ris = 0
-    for i in individual:
-        for j in individual:
-            ris = ris + (sigma(i, j, stock_dict, T, r(i, stock_dict, T), r(j, stock_dict, T)) * (1 / LOCUS) * (1 / LOCUS))
-    risks.append(ris)
-#リスクの計算終了
-
-#[(risk, return), (risk, return), ...]に形を整える
-p = [(x, y) for x, y in zip(risks, returns)]
-#Evaluation終了
-print(p)
+print(calc_risk_return(initialIndividuals))
 
 
 #多目的GA
@@ -226,30 +228,7 @@ while True:
     individuals.extend(priorIndividuals)
 
     #Evaluation
-    #リターンとリスクを保存するリスト, 行は個体に対応
-    returns = []
-    risks = []
-
-    #リターンを計算 投資比率は1/locusで固定(個体内で均等な投資比率)
-    for individual in individuals:
-        ret = 0
-        #一つの個体のリターンを計算
-        for i in individual:
-            ret = ret + (r(i, stock_dict, T) * (1/LOCUS))
-        returns.append(ret)
-    #リターンの計算終了
-
-    #リスクを計算 投資比率は1/locusで固定(個体内で均等な投資比率)
-    for individual in individuals:
-        ris = 0
-        for i in individual:
-            for j in individual:
-                ris = ris + (sigma(i, j, stock_dict, T, r(i, stock_dict, T), r(j, stock_dict, T)) * (1 / LOCUS) * (1 / LOCUS))
-        risks.append(ris)
-    #リスクの計算終了
-
-    #[(risk, return), (risk, return), ...]に形を整える
-    p = [(x, y) for x, y in zip(risks, returns)]
+    p = calc_risk_return(individuals)
     #Evaluation終了
 
     #Environmental selection
@@ -349,32 +328,7 @@ print("最適化された銘柄の組み合わせ = ")
 print(individuals)
 print("最適化された個体の個体数")
 print(len(individuals))
-
-#リターンとリスクを保存するリスト, 行は個体に対応
-returns = []
-risks = []
-
-#リターンを計算 投資比率は1/locusで固定(個体内で均等な投資比率)
-for individual in individuals:
-    ret = 0
-    #一つの個体のリターンを計算
-    for i in individual:
-        ret = ret + (r(i, stock_dict, T) * (1/LOCUS))
-    returns.append(ret)
-#リターンの計算終了
-
-#リスクを計算 投資比率は1/locusで固定(個体内で均等な投資比率)
-for individual in individuals:
-    ris = 0
-    for i in individual:
-        for j in individual:
-            ris = ris + (sigma(i, j, stock_dict, T, r(i, stock_dict, T), r(j, stock_dict, T)) * (1 / LOCUS) * (1 / LOCUS))
-    risks.append(ris)
-#リスクの計算終了
-
-#[(risk, return), (risk, return), ...]に形を整える
-p = [(x, y) for x, y in zip(risks, returns)]
-#Evaluation終了
+p = calc_risk_return(individuals)
 print("最適化された銘柄のリターンリスク = ")
 print(p)
 print("最適化されたリスクとリターンの個体数")
