@@ -144,8 +144,7 @@ print(calc_risk_return(initialIndividuals))
 #多目的GA
 
 #現在の個体群を保存するリスト, [['1', '2', '3'], ['3', '5', '6']]のように管理されている
-individuals = []
-individuals = copy.deepcopy(initialIndividuals)
+individuals = initialIndividuals
 
 #1世代前の個体群を保存する
 priorIndividuals = []
@@ -319,7 +318,7 @@ while True:
         for row in next_idx:
             nextIndividuals.append(individuals[row])
     #次世代に残す個体の選定終了
-    individuals = copy.deepcopy(nextIndividuals)
+    individuals = nextIndividuals
     terminal = terminal + 1
     print(terminal)
 #一世代での操作終了
