@@ -13,13 +13,13 @@ CLOSING_COL_INDEX = 4
 POPULATION = 50
 """一世代の個体数"""
 
-LOCUS = 4
+LOCUS_NUM = 4
 """遺伝子座の数"""
 
 MAXIMUM_TERMINAL = 500
 """最大世代数"""
 
-investment_ratio = 1 / LOCUS
+investment_ratio = 1 / LOCUS_NUM
 """投資比率(固定。個体内で均等)"""
 
 average_roi_dict: dict[int, float] = {}
@@ -188,7 +188,7 @@ population_range = range(POPULATION)
 stock_range = range(len(stock_codes))
 for _ in population_range:
     # 初期個体を発生させる
-    individual = random.sample(stock_range, LOCUS)
+    individual = random.sample(stock_range, LOCUS_NUM)
     initialIndividuals.append(individual)
 
 def print_risk_return(individuals: list[list[int]], prefix = ''):
@@ -218,7 +218,7 @@ for terminal in range(MAXIMUM_TERMINAL):
             I2 = random.randint(I1 + 1, I1 + POPULATION - 1) % POPULATION
 
             #交叉する遺伝子座を選択
-            cLocus = random.randint(1, LOCUS - 1)
+            cLocus = random.randint(1, LOCUS_NUM - 1)
 
             #交叉を行う
             child1 = individuals[I1][:cLocus] + individuals[I2][cLocus:]
@@ -238,7 +238,7 @@ for terminal in range(MAXIMUM_TERMINAL):
             continue
 
         #どの遺伝子座に突然変異を施すか決める
-        mutationLocus = random.randrange(LOCUS)
+        mutationLocus = random.randrange(LOCUS_NUM)
         #ランダムに銘柄番号を決める 同じ銘柄番号の場合はやり直し
         while True:
             child = individuals[i]
