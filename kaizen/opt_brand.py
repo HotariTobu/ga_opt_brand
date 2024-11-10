@@ -4,8 +4,6 @@ import random
 import math
 from statistics import mean
 
-random.seed(0)
-
 STOCK_LIST_FILEPATH = "stock.txt"
 """銘柄リストのファイルのパス"""
 
