@@ -133,7 +133,7 @@ population_range = range(POPULATION)
 
 for _ in population_range:
     # 初期個体を発生させる
-    individual = np.random.choice(stock_codes, LOCUS)
+    individual = np.random.choice(stock_codes, LOCUS, False)
     individual = [str(stock_code) for stock_code in individual]
     initialIndividuals.append(individual)
 
