@@ -156,16 +156,8 @@ for terminal in range(MAXIMUM_TERMINAL):
     for _ in population_range:
         while True:
             #交叉する個体を示す変数
-            I1 = 0
-            I2 = 0
-
-            #交叉する個体を選定. 同一個体が選ばれている場合はやり直し
-            while True:
-                I1 = random.randint(0, POPULATION - 1)
-                I2 = random.randint(0, POPULATION - 1)
-                if I1 != I2:
-                    break
-            #交叉する個体の選定終了
+            I1 = random.randint(0, POPULATION - 1)
+            I2 = random.randint(I1 + 1, I1 + POPULATION - 1) % POPULATION
 
             #交叉する遺伝子座を選択
             cLocus = 0
