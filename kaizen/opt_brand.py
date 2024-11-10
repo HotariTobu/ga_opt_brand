@@ -160,24 +160,14 @@ for terminal in range(MAXIMUM_TERMINAL):
             I2 = random.randint(I1 + 1, I1 + POPULATION - 1) % POPULATION
 
             #交叉する遺伝子座を選択
-            cLocus = 0
             cLocus = random.randint(1, LOCUS - 1)
 
             #交叉を行う
             child1 = individuals[I1][:cLocus] + individuals[I2][cLocus:]
             child2 = individuals[I2][:cLocus] + individuals[I1][cLocus:]
 
-            I1tmp = []
-            I2tmp = []
-            I1tmp = copy.deepcopy(child1)
-            I2tmp = copy.deepcopy(child2)
-            I1tup = tuple()
-            i2tup = tuple()
-            I1tup = tuple(I1tmp)
-            I2tup = tuple(I2tmp)
-
             #交叉する際, 一つの個体内に同じ銘柄番号が格納されていないか確認する
-            if (len(I1tup) == len(set(I1tup))) and  (len(I2tup) == len(set(I2tup))):
+            if (len(child1) == len(set(child1))) and  (len(child2) == len(set(child2))):
                 individuals[I1] = child1
                 individuals[I2] = child2
                 break
