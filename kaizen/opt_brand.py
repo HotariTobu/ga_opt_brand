@@ -74,12 +74,15 @@ def precision(population: list[PopulationItem]):
     precision_ans =[0] * len(population)
     for i in range(len(population)):
         for j in range(i + 1, len(population)):
+            risk_i, ret_i = population[i]
+            risk_j, ret_j = population[j]
+
             #個体iが個体jよりリスクが低く, リターンが高い場合
-            if (population[i][0] <= population[j][0]) and (population[i][1] >= population[j][1]):
+            if (risk_i <= risk_i) and (ret_i >= ret_j):
                 precision_ans[j] = precision_ans[j] + 1
 
             #個体jが個体iよりリスクが低く, リターンが高い場合
-            if (population[j][0] <= population[i][0]) and (population[j][1] >= population[i][1]):
+            if (risk_j <= risk_i) and (ret_j >= ret_i):
                 precision_ans[i] = precision_ans[i] + 1
 
     return precision_ans
@@ -217,25 +220,25 @@ for terminal in range(MAXIMUM_TERMINAL):
     #適合度0の個体数が次世代に残す所定個体数(POPULATION)以下であるかどうか判定
     if precision_list.count(0) <= POPULATION:
         #適合度が小さい順にprecision_listのインデックスを並べる
-        sorted_indices = [i for i, _ in sorted(enumerate(precision_list), key=lambda x: x[1])]
-        if precision_list[sorted_indices[POPULATION]] != precision_list[sorted_indices[POPULATION - 1]]:
+        sorted_individual_precision_list = [(individuals[i], p) for i, p in sorted(enumerate(precision_list), key=lambda x: x[1])]
+        if sorted_individual_precision_list[POPULATION][1] != sorted_individual_precision_list[POPULATION - 1][1]:
             #一世代分の個体を取る際, 切れ目が異なる適合度の場合の処理
             for i in population_range:
-                nextIndividuals.append(individuals[sorted_indices[i]])
+                nextIndividuals.append(sorted_individual_precision_list[i][0])
         else:
             #一世代分の個体を取る際, 切れ目が同じ適合度の場合の処理
             #同世代においてもリスクが小さい個体を優先的に選択する
             idx = 0
             for i in population_range:
                 #適合度が同じのが現れるまでnextIndexにappendする
-                if precision_list[sorted_indices[POPULATION]] == precision_list[sorted_indices[i]]:
+                if sorted_individual_precision_list[POPULATION][1] == sorted_individual_precision_list[i][1]:
                     break
                 idx = idx + 1
-                nextIndividuals.append(individuals[sorted_indices[i]])
+                nextIndividuals.append(sorted_individual_precision_list[i][0])
             #指定の適合度(切れ目の個体の適合度)の個体のインデックスを保存するリスト
             precision_equal_idx: list[int] = []
             for i in range(len(precision_list)):
-                if precision_list[i] == precision_list[sorted_indices[idx]]:
+                if precision_list[i] == sorted_individual_precision_list[idx][1]:
                     precision_equal_idx.append(i)
             #リスクの小さい順にnextIndexにappendしていくためのリストを作る
             risk_min: list[tuple[float, float, int]] = []
