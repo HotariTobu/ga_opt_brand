@@ -25,9 +25,6 @@ MAXIMUM_TERMINAL = 500
 MUTATION_RATE = 0.05
 """突然変異を起こす確率"""
 
-investment_ratio = 1 / LOCUS_NUM
-"""投資比率(固定。個体内で均等)"""
-
 stock_codes: list[str] = []
 """銘柄コードの一覧"""
 
@@ -132,6 +129,9 @@ def get_cov_roi(i: int, j: int) -> float:
 
     return cov_roi
 
+investment_ratio = 1 / LOCUS_NUM
+"""投資比率(固定。個体内で均等)"""
+
 def calc_risks(individuals: list[list[int]]) -> array[float]:
     global investment_ratio
 
@@ -163,11 +163,40 @@ def calc_returns(individuals: list[list[int]]) -> array[float]:
 
     return return_array
 
+individuals: list[list[int]] = []
+"""
+個体群
+
+`[[4, 1, 2], [3, 5, 2], ...]`というように銘柄のインデックスのリストが1つの個体を表す。
+"""
+
 population_range = range(POPULATION)
 """個体数の範囲"""
 
 stock_range = range(len(stock_codes))
 """銘柄番号の範囲"""
+
+# 初期個体を発生させる
+for _ in population_range:
+    individual = random.sample(stock_range, LOCUS_NUM)
+    individuals.append(individual)
+
+def print_risk_return(individuals: list[list[int]], prefix = ''):
+    """リスクとリターンを出力する。
+
+    Args:
+        individuals (list[list[int]]): 個体群
+        prefix (str, optional): 行頭のプレフィクス
+    """
+
+    risk_array = calc_risks(individuals)
+    return_array = calc_returns(individuals)
+    print(prefix + 'risk_array =', risk_array)
+    print(prefix + 'return_array =', return_array)
+
+print("初期個体群 =", individuals)
+print_risk_return(individuals, prefix="initial_")
+
 
 def crossover(individuals: list[list[int]]):
     for _ in population_range:
@@ -231,36 +260,6 @@ def calc_gofs(risk_array: array[float], return_array: array[float]) -> array[int
                 gof_array[j] += 1
 
     return gof_array
-#適合度計算関数終了
-
-#main文
-
-#Readind data.
-
-#Gen Initial individuals.
-
-#初期個体群
-initial_individuals: list[list[int]] = []
-
-for _ in population_range:
-    # 初期個体を発生させる
-    individual = random.sample(stock_range, LOCUS_NUM)
-    initial_individuals.append(individual)
-
-def print_risk_return(individuals: list[list[int]], prefix = ''):
-    risk_array = calc_risks(individuals)
-    return_array = calc_returns(individuals)
-    print(prefix + 'risk_array =', risk_array)
-    print(prefix + 'return_array =', return_array)
-
-print("初期個体群 =", initial_individuals)
-print_risk_return(initial_individuals, prefix="initial_")
-
-
-#多目的GA
-
-#現在の個体群を保存するリスト, [['1', '2', '3'], ['3', '5', '6']]のように管理されている
-individuals: list[list[int]] = initial_individuals
 
 for terminal in range(MAXIMUM_TERMINAL):
     #Individuals replication
