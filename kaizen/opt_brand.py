@@ -185,7 +185,7 @@ for terminal in range(MAXIMUM_TERMINAL):
             child = individuals[i]
             #変更前と変更後の銘柄が同じじゃない場合銘柄を変更
             while True:
-                tmp = stock_codes[random.randint(0, len(stock_codes) - 1)]
+                tmp = random.choice(stock_codes)
                 if tmp != child[mutationLocus]:
                     child[mutationLocus] = tmp
                     break
