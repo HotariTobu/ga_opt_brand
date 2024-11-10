@@ -74,14 +74,13 @@ def precision(population: list[PopulationItem]):
     precision_ans =[0] * len(population)
     for i in range(0, len(population)):
         for j in range(i + 1, len(population)):
-            if i != j:
-                #個体iが個体jよりリスクが低く, リターンが高い場合
-                if (population[i][0] <= population[j][0]) and (population[i][1] >= population[j][1]):
-                    precision_ans[j] = precision_ans[j] + 1
+            #個体iが個体jよりリスクが低く, リターンが高い場合
+            if (population[i][0] <= population[j][0]) and (population[i][1] >= population[j][1]):
+                precision_ans[j] = precision_ans[j] + 1
 
-                #個体jが個体iよりリスクが低く, リターンが高い場合
-                if (population[j][0] <= population[i][0]) and (population[j][1] >= population[i][1]):
-                    precision_ans[i] = precision_ans[i] + 1
+            #個体jが個体iよりリスクが低く, リターンが高い場合
+            if (population[j][0] <= population[i][0]) and (population[j][1] >= population[i][1]):
+                precision_ans[i] = precision_ans[i] + 1
 
     return precision_ans
 #適合度計算関数終了
