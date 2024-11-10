@@ -265,7 +265,7 @@ for terminal in range(MAXIMUM_TERMINAL):
             nextIndividuals.append(individuals[row])
     #次世代に残す個体の選定終了
     individuals = nextIndividuals
-    print(terminal)
+    print(terminal, end='\r')
 #一世代での操作終了
 
 print("最適化された銘柄の組み合わせ = ")
