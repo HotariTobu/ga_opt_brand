@@ -232,8 +232,8 @@ for terminal in range(MAXIMUM_TERMINAL):
             for i in population_range:
                 #適合度が同じのが現れるまでnextIndexにappendする
                 if sorted_individual_precision_list[POPULATION][1] == sorted_individual_precision_list[i][1]:
+                    idx = i
                     break
-                idx += 1
                 nextIndividuals.append(sorted_individual_precision_list[i][0])
             #指定の適合度(切れ目の個体の適合度)の個体のインデックスを保存するリスト
             precision_equal_idx: list[int] = []
