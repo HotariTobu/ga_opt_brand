@@ -1,5 +1,6 @@
 from collections import namedtuple
 import csv
+from pickle import POP
 import random
 import copy
 import math
@@ -246,11 +247,8 @@ for terminal in range(MAXIMUM_TERMINAL):
                 risk_min.append(p[idx] + (idx,))
             #risk_minリストをリスクの小さい順に並び替える
             sorted_risk_min = sorted(risk_min, key=lambda x: x[0])
-            idx = len(nextIndividuals)
-            for row in sorted_risk_min:
-                if idx == POPULATION:
-                    break
-                idx += 1
+            for i in range(len(nextIndividuals), POPULATION):
+                row = sorted_risk_min[i]
                 nextIndividuals.append(individuals[row[2]])
     #適合度0の個体が次世代に残す所定個体数以下である場合の処理終了
     else:
