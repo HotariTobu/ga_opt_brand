@@ -163,6 +163,12 @@ def calc_returns(individuals: list[list[int]]) -> array[float]:
 
     return return_array
 
+population_range = range(POPULATION)
+"""個体数の範囲"""
+
+stock_range = range(len(stock_codes))
+"""銘柄番号の範囲"""
+
 def crossover(individuals: list[list[int]]):
     for _ in population_range:
         while True:
@@ -235,9 +241,6 @@ def calc_gofs(risk_array: array[float], return_array: array[float]) -> array[int
 
 #初期個体群
 initial_individuals: list[list[int]] = []
-
-population_range = range(POPULATION)
-stock_range = range(len(stock_codes))
 
 for _ in population_range:
     # 初期個体を発生させる
