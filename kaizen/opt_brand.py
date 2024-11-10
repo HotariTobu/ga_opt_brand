@@ -22,6 +22,9 @@ MAXIMUM_TERMINAL = 500
 
 PopulationItem = namedtuple('PopulationItem', ['risk', 'ret'])
 
+investment_ratio = 1 / LOCUS
+"""投資比率(固定。個体内で均等)"""
+
 average_roi_dict: dict[int, float] = {}
 """平均収益率のキャッシュ"""
 
@@ -33,12 +36,12 @@ def calc_risk_return(individuals: list[list[int]]):
     returns = []
     risks = []
 
-    #リターンを計算 投資比率は1/locusで固定(個体内で均等な投資比率)
+    #リターンを計算 投資比率は1/locusで固定(な投資比率)
     for individual in individuals:
         ret = 0
         #一つの個体のリターンを計算
         for i in individual:
-            ret += (r(i, T) * (1/LOCUS))
+            ret += (r(i, T) * investment_ratio)
         returns.append(ret)
     #リターンの計算終了
 
@@ -47,7 +50,7 @@ def calc_risk_return(individuals: list[list[int]]):
         ris = 0
         for i in individual:
             for j in individual:
-                ris += (sigma(i, j, T, r(i, T), r(j, T)) * (1 / LOCUS) * (1 / LOCUS))
+                ris += (sigma(i, j, T, r(i, T), r(j, T)) * investment_ratio * investment_ratio)
         risks.append(ris)
     #リスクの計算終了
 
