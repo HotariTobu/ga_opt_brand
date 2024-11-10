@@ -114,7 +114,7 @@ stock_dict: dict[StockCode, list[list[str]]] = {}
 """
 株式データ[StockCode][Date][Column]
 
-stock_dict[1234][2023-12-29][3]で銘柄コード1234の2023年12月29日の終値にアクセスできる。
+stock_dict["1234"][0][4]で、最終行が2023年12月29日のデータなら、銘柄コード1234の2023年12月29日の終値にアクセスできる。
 """
 
 with open("stock.txt", "r") as file:
