@@ -63,7 +63,6 @@ def calculate_distance(p, idx_1, idx_2):
 stock_codes = []
 with open("stock.txt", "r") as file:
     stock_codes = [line.strip() for line in file]
-file.close()
 
 #株式データを保存する辞書(辞書の中身は全てstr型)
 #辞書へのアクセス方法name[*]で株式データ選択, stock_codes[0][*]で株式データの日付アクセス
@@ -75,8 +74,6 @@ for i in stock_codes:
         f.reverse()
         f.pop()
         stock_dict[i] = [row for row in f]
-        csv_file.close()
-    csv_file.close()
 
 #取得した株式データの期間を保存
 T = len(stock_dict[stock_codes[0]])
