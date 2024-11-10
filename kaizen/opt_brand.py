@@ -55,9 +55,9 @@ def r(i, T):
     #各日の収益率を計算して足し合わせる
     closing_list = closing_list_dict[i]
     erning_sum = 0
-    for k in range(1, T):
+    for k in range(T - 1):
         #当日の収益率
-        erning = (closing_list[k] - closing_list[k-1]) / closing_list[k-1]
+        erning = (closing_list[k] - closing_list[k + 1]) / closing_list[k + 1]
         erning_sum += erning
     average = erning_sum / (T-1)
     return average
@@ -68,9 +68,9 @@ def sigma(i, j, T, average_ri, average_rj):
     distinction_sum = 0
     closing_list_i = closing_list_dict[i]
     closing_list_j = closing_list_dict[j]
-    for k in range(1, T):
-        erning_i = (closing_list_i[k] - closing_list_i[k-1]) / closing_list_i[k-1]
-        erning_j = (closing_list_j[k] - closing_list_j[k-1]) / closing_list_j[k-1]
+    for k in range(T - 1):
+        erning_i = (closing_list_i[k] - closing_list_i[k + 1]) / closing_list_i[k + 1]
+        erning_j = (closing_list_j[k] - closing_list_j[k + 1]) / closing_list_j[k + 1]
         distinction = (erning_i - average_ri) * (erning_j - average_rj)
         distinction_sum += distinction
     CoV = distinction_sum / (T-1)
@@ -118,7 +118,10 @@ stock_codes: list[StockCode] = []
 """銘柄コードの一覧"""
 
 closing_list_dict: dict[int, array[float]] = {}
-"""各銘柄の終値のリストの辞書"""
+"""
+各銘柄の終値のリストの辞書
+終値リストは日付の降順となっている
+"""
 
 with open("stock.txt", "r") as file:
     for i, line in enumerate(file):
