@@ -36,6 +36,7 @@ roi_array_dict: dict[int, array[float]] = {}
 収益率の配列の要素は日付の降順となっている
 """
 
+
 def closing_to_roi(closing_array: array[float]) -> array[float]:
     """終値の配列から収益率の配列を作成する。
 
@@ -47,12 +48,13 @@ def closing_to_roi(closing_array: array[float]) -> array[float]:
     """
 
     len_roi_array = len(closing_array) - 1
-    roi_array = array('f', [0] * len_roi_array)
+    roi_array = array("f", [0] * len_roi_array)
 
     for i in range(len_roi_array):
         roi_array[i] = (closing_array[i] - closing_array[i + 1]) / closing_array[i + 1]
 
     return roi_array
+
 
 # 株式データのファイルを読み込む
 with open(STOCK_LIST_FILEPATH, "r") as file:
@@ -63,7 +65,10 @@ with open(STOCK_LIST_FILEPATH, "r") as file:
         with open(STOCK_DATA_FILEPATH_TEMPLATE.format(stock_code), "r") as csv_file:
             csv_file.readline()
             csv_reader = csv.reader(csv_file)
-            closing_array = array('f', [float(row[CLOSING_COL_INDEX]) for row in csv_reader])
+
+            closing_list = [float(row[CLOSING_COL_INDEX]) for row in csv_reader]
+            closing_array = array("f", closing_list)
+
             roi_array_dict[i] = closing_to_roi(closing_array)
 
 day_count = len(roi_array_dict[0])
@@ -75,7 +80,7 @@ average_roi_dict: dict[int, float] = {}
 cov_roi_dict: dict[frozenset, float] = {}
 """収益率の共分散のキャッシュ"""
 
-#平均収益率を計算する関数
+
 def get_average_roi(i: int) -> float:
     """収益率の平均を計算する。計算結果を`average_roi_dict`に格納し、2回目以降の呼び出しではその値を返す。
 
@@ -96,7 +101,7 @@ def get_average_roi(i: int) -> float:
     average_roi_dict[i] = average_roi
     return average_roi
 
-#共分散を計算する関数
+
 def get_cov_roi(i: int, j: int) -> float:
     """収益率の共分散を計算する。計算結果を`cov_roi_dict`に格納し、2回目以降の呼び出しではその値を返す。
 
@@ -134,8 +139,10 @@ def get_cov_roi(i: int, j: int) -> float:
 
     return cov_roi
 
+
 investment_ratio = 1 / LOCUS_NUM
 """投資比率(固定。個体内で均等)"""
+
 
 def calc_risks(individuals: list[list[int]]) -> array[float]:
     """指定された個体群のリスクを計算する。
@@ -149,7 +156,7 @@ def calc_risks(individuals: list[list[int]]) -> array[float]:
 
     global investment_ratio
 
-    risk_array = array('f')
+    risk_array = array("f")
 
     for individual in individuals:
         risk = 0
@@ -161,6 +168,7 @@ def calc_risks(individuals: list[list[int]]) -> array[float]:
         risk_array.append(risk)
 
     return risk_array
+
 
 def calc_returns(individuals: list[list[int]]) -> array[float]:
     """指定された個体群のリターンを計算する。
@@ -174,7 +182,7 @@ def calc_returns(individuals: list[list[int]]) -> array[float]:
 
     global investment_ratio
 
-    return_array = array('f')
+    return_array = array("f")
 
     for individual in individuals:
         ret = 0
@@ -185,6 +193,7 @@ def calc_returns(individuals: list[list[int]]) -> array[float]:
         return_array.append(ret)
 
     return return_array
+
 
 individuals: list[list[int]] = []
 """
@@ -204,7 +213,8 @@ for _ in population_range:
     individual = random.sample(stock_range, LOCUS_NUM)
     individuals.append(individual)
 
-def print_stock_combinations(individuals: list[list[int]], prefix = ''):
+
+def print_stock_combinations(individuals: list[list[int]], prefix=""):
     """銘柄の組み合わせを出力する。
 
     Args:
@@ -213,9 +223,10 @@ def print_stock_combinations(individuals: list[list[int]], prefix = ''):
     """
 
     combinations = [stock_codes[i] for individual in individuals for i in individual]
-    print(prefix + 'combinations =', combinations)
+    print(prefix + "combinations =", combinations)
 
-def print_risk_return(individuals: list[list[int]], prefix = ''):
+
+def print_risk_return(individuals: list[list[int]], prefix=""):
     """リスクとリターンを出力する。
 
     Args:
@@ -225,11 +236,13 @@ def print_risk_return(individuals: list[list[int]], prefix = ''):
 
     risk_array = calc_risks(individuals)
     return_array = calc_returns(individuals)
-    print(prefix + 'risk_array =', risk_array)
-    print(prefix + 'return_array =', return_array)
+    print(prefix + "risk_array =", risk_array)
+    print(prefix + "return_array =", return_array)
+
 
 print_stock_combinations(individuals, prefix="initial_")
 print_risk_return(individuals, prefix="initial_")
+
 
 def crossover(individuals: list[list[int]]):
     """交叉を行って個体群を更新する。
@@ -249,14 +262,15 @@ def crossover(individuals: list[list[int]]):
             locus = random.randrange(1, LOCUS_NUM)
 
             # 交叉を行う
-            new_individual_i = individual_i[:locus] + individual_j[locus:]
-            new_individual_j = individual_j[:locus] + individual_i[locus:]
+            new_i = individual_i[:locus] + individual_j[locus:]
+            new_j = individual_j[:locus] + individual_i[locus:]
 
             # 交叉後、一つの個体に同じ銘柄番号が含まれる場合はやり直し
-            if len(new_individual_i) == len(set(new_individual_i)) and len(new_individual_j) == len(set(new_individual_j)):
-                individuals[i] = new_individual_i
-                individuals[j] = new_individual_j
+            if len(new_i) == len(set(new_i)) and len(new_j) == len(set(new_j)):
+                individuals[i] = new_i
+                individuals[j] = new_j
                 break
+
 
 def mutation(individuals: list[list[int]]):
     """突然変異を行って個体群を更新する。
@@ -269,19 +283,20 @@ def mutation(individuals: list[list[int]]):
         if random.random() > MUTATION_RATE:
             continue
 
-        new_individual = individuals[i].copy()
+        new = individuals[i].copy()
 
         # 元の個体に含まれない銘柄番号を選ぶ
         while True:
             stock_index = random.choice(stock_range)
-            if stock_index not in new_individual:
+            if stock_index not in new:
                 break
 
         # 突然変異する遺伝子座を選ぶ
         locus = random.randrange(LOCUS_NUM)
 
-        new_individual[locus] = stock_index
-        individuals[i] = new_individual
+        new[locus] = stock_index
+        individuals[i] = new
+
 
 def calc_gofs(risk_array: array[float], return_array: array[float]) -> list[int]:
     """リスクとリターンから適合度を計算する。
@@ -295,8 +310,12 @@ def calc_gofs(risk_array: array[float], return_array: array[float]) -> list[int]
     """
 
     # リスクの低い順、リターンの高い順で個体のインデックスを並び替える
-    sorted_risk_indices = [i for i, _ in sorted(enumerate(risk_array), key=lambda x: x[1])]
-    sorted_return_indices = [i for i, _ in sorted(enumerate(return_array), key=lambda x: -x[1])]
+    sorted_risk_indices = [
+        i for i, _ in sorted(enumerate(risk_array), key=lambda x: x[1])
+    ]
+    sorted_return_indices = [
+        i for i, _ in sorted(enumerate(return_array), key=lambda x: -x[1])
+    ]
 
     # 個体のインデックスからリスクの順位、リターンの順位を取得するための辞書
     risk_order_dict = {i: order for order, i in enumerate(sorted_risk_indices)}
@@ -318,6 +337,7 @@ def calc_gofs(risk_array: array[float], return_array: array[float]) -> list[int]
         gof_list.append(gof)
 
     return gof_list
+
 
 # 進化開始
 for terminal in range(MAXIMUM_TERMINAL):
@@ -346,7 +366,12 @@ for terminal in range(MAXIMUM_TERMINAL):
     # 適合度0の個体数が次世代に残す所定個体数(POPULATION)以下であるかどうか判定
     if gof_list.count(0) <= POPULATION:
         # 適合度が小さい順、リスクが小さい順に個体を選ぶ
-        next_individuals = [individual for _, _, individual in sorted(zip(gof_list, risk_array, individuals))[:POPULATION]]
+        next_individuals = [
+            individual
+            for _, _, individual in sorted(zip(gof_list, risk_array, individuals))[
+                :POPULATION
+            ]
+        ]
 
     else:
         # 50000世代まで行っても発生しなかった_(:3」∠)_
@@ -393,7 +418,7 @@ for terminal in range(MAXIMUM_TERMINAL):
         #     next_individuals.append(individuals[row])
 
     individuals = next_individuals
-    print(terminal, end='\r')
+    print(terminal, end="\r")
 
 print_stock_combinations(individuals, prefix="optimized_")
 print_risk_return(individuals, prefix="optimized_")
