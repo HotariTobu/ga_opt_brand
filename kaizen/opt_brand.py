@@ -68,13 +68,15 @@ def calculate_distance(p, idx_1, idx_2):
 
 #Readind data.
 
-#株式データを番号(str型)で管理するリスト
 stock_codes = []
+"""銘柄コードの一覧"""
 
-#株式データを保存する辞書(辞書の中身は全てstr型)
-#辞書へのアクセス方法name[*]で株式データ選択, stock_codes[0][*]で株式データの日付アクセス
-#stock_codes[0][0][*]で株式データの日付の四本値などにアクセス
 stock_dict = {}
+"""
+株式データ[StockCode][Date][Column]
+
+stock_dict[1234][2023-12-29][3]で銘柄コード1234の2023年12月29日の終値にアクセスできる。
+"""
 
 with open("stock.txt", "r") as file:
     for line in file:
