@@ -42,7 +42,7 @@ def calc_risk_return(individuals: list[list[int]]):
         ret = 0
         #一つの個体のリターンを計算
         for i in individual:
-            ret += r(i) * investment_ratio
+            ret += get_average_roi(i) * investment_ratio
         returns.append(ret)
     #リターンの計算終了
 
@@ -51,7 +51,7 @@ def calc_risk_return(individuals: list[list[int]]):
         ris = 0
         for i in individual:
             for j in individual:
-                ris += sigma(i, j) * investment_ratio * investment_ratio
+                ris += get_cov_roi(i, j) * investment_ratio * investment_ratio
         risks.append(ris)
     #リスクの計算終了
 
@@ -61,7 +61,16 @@ def calc_risk_return(individuals: list[list[int]]):
     return p
 
 #平均収益率を計算する関数
-def r(i):
+def get_average_roi(i: int) -> float:
+    """収益率の平均を計算する。計算結果を`average_roi_dict`に格納し、2回目以降の呼び出しではその値を返す。
+
+    Args:
+        i (int): 銘柄番号
+
+    Returns:
+        float: 指定された銘柄の収益率の平均
+    """
+
     if i in average_roi_dict:
         return average_roi_dict[i]
 
@@ -71,7 +80,17 @@ def r(i):
     return average_roi
 
 #共分散を計算する関数
-def sigma(i, j):
+def get_cov_roi(i: int, j: int) -> float:
+    """収益率の共分散を計算する。計算結果を`cov_roi_dict`に格納し、2回目以降の呼び出しではその値を返す。
+
+    Args:
+        i (int): 銘柄番号1
+        j (int): 銘柄番号2
+
+    Returns:
+        float: 指定された2つの銘柄の収益率の共分散
+    """
+
     key = frozenset({i, j})
     if key in cov_roi_dict:
         return cov_roi_dict[key]
@@ -85,8 +104,8 @@ def sigma(i, j):
         sum_roi_ij += roi_i * roi_j
     average_roi_ij = sum_roi_ij / day_count
 
-    average_roi_i = r(i)
-    average_roi_j = r(j)
+    average_roi_i = get_average_roi(i)
+    average_roi_j = get_average_roi(j)
 
     cov_roi = average_roi_ij - average_roi_i * average_roi_j
 
