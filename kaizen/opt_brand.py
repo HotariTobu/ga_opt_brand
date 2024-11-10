@@ -32,34 +32,6 @@ average_roi_dict: dict[int, float] = {}
 cov_roi_dict: dict[frozenset, float] = {}
 """収益率の共分散のキャッシュ"""
 
-def calc_risk_return(individuals: list[list[int]]):
-    #リターンとリスクを保存するリスト, 行は個体に対応
-    returns = []
-    risks = []
-
-    #リターンを計算 投資比率は1/locusで固定(な投資比率)
-    for individual in individuals:
-        ret = 0
-        #一つの個体のリターンを計算
-        for i in individual:
-            ret += get_average_roi(i) * investment_ratio
-        returns.append(ret)
-    #リターンの計算終了
-
-    #リスクを計算 投資比率は1/locusで固定(個体内で均等な投資比率)
-    for individual in individuals:
-        ris = 0
-        for i in individual:
-            for j in individual:
-                ris += get_cov_roi(i, j) * investment_ratio * investment_ratio
-        risks.append(ris)
-    #リスクの計算終了
-
-    #[(risk, return), (risk, return), ...]に形を整える
-    p = [PopulationItem(x, y) for x, y in zip(risks, returns)]
-
-    return p
-
 #平均収益率を計算する関数
 def get_average_roi(i: int) -> float:
     """収益率の平均を計算する。計算結果を`average_roi_dict`に格納し、2回目以降の呼び出しではその値を返す。
@@ -113,24 +85,54 @@ def get_cov_roi(i: int, j: int) -> float:
 
     return cov_roi
 
+def calc_risks(individuals: list[list[int]]) -> array[float]:
+    risk_array = array('f')
+
+    for individual in individuals:
+        risk = 0
+
+        for i in individual:
+            for j in individual:
+                risk += get_cov_roi(i, j) * investment_ratio * investment_ratio
+
+        risk_array.append(risk)
+
+    return risk_array
+
+def calc_returns(individuals: list[list[int]]) -> array[float]:
+    return_array = array('f')
+
+    for individual in individuals:
+        ret = 0
+
+        for i in individual:
+            ret += get_average_roi(i) * investment_ratio
+
+        return_array.append(ret)
+
+    return return_array
+
 #適合度計算関数
-def precision(population: list[PopulationItem]):
-    #計算した適合度を格納しておくリスト
-    precision_ans =[0] * len(population)
-    for i in range(len(population)):
-        for j in range(i + 1, len(population)):
-            risk_i, ret_i = population[i]
-            risk_j, ret_j = population[j]
+def calc_gofs(risk_array: array[float], return_array: array[float]) -> array[int]:
+    len_gof_array = len(risk_array)
+    gof_array = array('i', [0] * len_gof_array)
+
+    for i in range(len_gof_array):
+        for j in range(i + 1, len_gof_array):
+            risk_i = risk_array[i]
+            risk_j = risk_array[j]
+            ret_i = return_array[i]
+            ret_j = return_array[j]
 
             #個体iが個体jよりリスクが高く, リターンが低い場合
             if (risk_i >= risk_j) and (ret_i <= ret_j):
-                precision_ans[i] += 1
+                gof_array[i] += 1
 
             #個体jが個体iよりリスクが高く, リターンが低い場合
             if (risk_i <= risk_j) and (ret_i >= ret_j):
-                precision_ans[j] += 1
+                gof_array[j] += 1
 
-    return precision_ans
+    return gof_array
 #適合度計算関数終了
 
 #2点間の距離を計算する関数
@@ -206,10 +208,14 @@ for _ in population_range:
     individual = random.sample(stock_range, LOCUS)
     initialIndividuals.append(individual)
 
-print("初期個体群 = ")
-print(initialIndividuals)
-print("初期個体群のリスクとリターン = ")
-print(calc_risk_return(initialIndividuals))
+def print_risk_return(individuals: list[list[int]], prefix = ''):
+    risk_array = calc_risks(individuals)
+    return_array = calc_returns(individuals)
+    print(prefix + 'risk_array =', risk_array)
+    print(prefix + 'return_array =', return_array)
+
+print("初期個体群 =", initialIndividuals)
+print_risk_return(initialIndividuals, prefix="initial_")
 
 
 #多目的GA
@@ -271,75 +277,69 @@ for terminal in range(MAXIMUM_TERMINAL):
     individuals += priorIndividuals
 
     #Evaluation
-    p = calc_risk_return(individuals)
+    risk_array = calc_risks(individuals)
+    return_array = calc_returns(individuals)
     #Evaluation終了
 
     #Environmental selection
 
     #適合度を計算する
-    precision_list = precision(p)
+    gof_array = calc_gofs(risk_array, return_array)
 
     #次世代に残す個体をリストで保存
     nextIndividuals: list[list[int]] = []
 
     #適合度0の個体数が次世代に残す所定個体数(POPULATION)以下であるかどうか判定
-    if precision_list.count(0) <= POPULATION:
+    if gof_array.count(0) <= POPULATION:
         #適合度が小さい順、リスクが小さい順に個体を選ぶ
-        nextIndividuals = [individual for _, _, individual in sorted(zip(precision_list, p, individuals), key=lambda x: x)[:POPULATION]]
+        nextIndividuals = [individual for _, _, individual in sorted(zip(gof_array, risk_array, individuals))[:POPULATION]]
     #適合度0の個体が次世代に残す所定個体数以下である場合の処理終了
     else:
         raise NotImplementedError()
-        #適合度0の個体が次世代に残す個体より多い場合
-        #個体度0の個体のindividualsのインデックスをリストに格納
-        next_idx: list[int] = []
-        for i in range(len(precision_list)):
-            if precision_list[i] == 0:
-                next_idx.append(i)
+        # #適合度0の個体が次世代に残す個体より多い場合
+        # #個体度0の個体のindividualsのインデックスをリストに格納
+        # next_idx: list[int] = []
+        # for i in range(len(gof_array)):
+        #     if gof_array[i] == 0:
+        #         next_idx.append(i)
 
-        #next_idxの要素数がpopulationと等しくなるまで繰り返す
-        for _ in range(POPULATION, len(next_idx)):
-            #next_idxのすべての組み合わせに対して距離を保存するリスト
-            #リストの形式は[(距離, 個体のインデックス1, 個体のインデックス2), ...]
-            next_idx_distance: list[tuple[float, int, int]] = []
-            #Step 1. next_idxのすべての組み合わせに対して距離を計算, リストに保存
-            for i, j in combinations(next_idx, 2):
-                next_idx_distance.append((calculate_distance(p, i, j), i, j))
-            #Step2. もっとも距離の短い2点を見つけ出しmin_distanceにタプル形式で代入する
-            min_distance = min(next_idx_distance, key=lambda x: x[0])
-            #Step3. もっとも近接している2個体それぞれの個体に対して, 2番目に近接している個体との距離を計算
-            min_dis1: list[tuple[float, int, int]] = []
-            min_dis2: list[tuple[float, int, int]] = []
-            for i in range(len(next_idx)):
-                if i == min_distance[1] or i == min_distance[2]:
-                    continue
+        # #next_idxの要素数がpopulationと等しくなるまで繰り返す
+        # for _ in range(POPULATION, len(next_idx)):
+        #     #next_idxのすべての組み合わせに対して距離を保存するリスト
+        #     #リストの形式は[(距離, 個体のインデックス1, 個体のインデックス2), ...]
+        #     next_idx_distance: list[tuple[float, int, int]] = []
+        #     #Step 1. next_idxのすべての組み合わせに対して距離を計算, リストに保存
+        #     for i, j in combinations(next_idx, 2):
+        #         next_idx_distance.append((calculate_distance(p, i, j), i, j))
+        #     #Step2. もっとも距離の短い2点を見つけ出しmin_distanceにタプル形式で代入する
+        #     min_distance = min(next_idx_distance, key=lambda x: x[0])
+        #     #Step3. もっとも近接している2個体それぞれの個体に対して, 2番目に近接している個体との距離を計算
+        #     min_dis1: list[tuple[float, int, int]] = []
+        #     min_dis2: list[tuple[float, int, int]] = []
+        #     for i in range(len(next_idx)):
+        #         if i == min_distance[1] or i == min_distance[2]:
+        #             continue
 
-                min_dis1.append((calculate_distance(p, min_distance[1], i), min_distance[1], i))
-                min_dis2.append((calculate_distance(p, min_distance[2], i), min_distance[2], i))
+        #         min_dis1.append((calculate_distance(p, min_distance[1], i), min_distance[1], i))
+        #         min_dis2.append((calculate_distance(p, min_distance[2], i), min_distance[2], i))
 
-            min_dis1_min = min(min_dis1, key=lambda x: x[0])
-            min_dis2_min = min(min_dis2, key=lambda x: x[0])
-            #Step4. 2番目に近接している個体との距離が短い個体を削除する
-            if min_dis1_min[0] < min_dis2_min[0]:
-                #min_dis1_minのインデックスをnext_idxから削除
-                next_idx.remove(min_dis1_min[1])
-            else:
-                #min_dis2_minのインデックスをnext_idxから削除
-                next_idx.remove(min_dis2_min[1])
-        #next_idxの要素数がpopulationと等しくなるまでループ完了
+        #     min_dis1_min = min(min_dis1, key=lambda x: x[0])
+        #     min_dis2_min = min(min_dis2, key=lambda x: x[0])
+        #     #Step4. 2番目に近接している個体との距離が短い個体を削除する
+        #     if min_dis1_min[0] < min_dis2_min[0]:
+        #         #min_dis1_minのインデックスをnext_idxから削除
+        #         next_idx.remove(min_dis1_min[1])
+        #     else:
+        #         #min_dis2_minのインデックスをnext_idxから削除
+        #         next_idx.remove(min_dis2_min[1])
+        # #next_idxの要素数がpopulationと等しくなるまでループ完了
 
-        for row in next_idx:
-            nextIndividuals.append(individuals[row])
+        # for row in next_idx:
+        #     nextIndividuals.append(individuals[row])
     #次世代に残す個体の選定終了
     individuals = nextIndividuals
     print(terminal, end='\r')
 #一世代での操作終了
 
-print("最適化された銘柄の組み合わせ = ")
-print(individuals)
-print("最適化された個体の個体数")
-print(len(individuals))
-p = calc_risk_return(individuals)
-print("最適化された銘柄のリターンリスク = ")
-print(p)
-print("最適化されたリスクとリターンの個体数")
-print(len(p))
+print("最適化された銘柄の組み合わせ =", individuals)
+print_risk_return(individuals, prefix="optimized_")
