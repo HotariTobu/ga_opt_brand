@@ -5,6 +5,7 @@ from itertools import combinations
 import random
 import copy
 import math
+from statistics import mean
 
 random.seed(0)
 
@@ -41,7 +42,7 @@ def calc_risk_return(individuals: list[list[int]]):
         ret = 0
         #一つの個体のリターンを計算
         for i in individual:
-            ret += r(i, T) * investment_ratio
+            ret += r(i) * investment_ratio
         returns.append(ret)
     #リターンの計算終了
 
@@ -50,7 +51,7 @@ def calc_risk_return(individuals: list[list[int]]):
         ris = 0
         for i in individual:
             for j in individual:
-                ris += sigma(i, j, T, r(i, T), r(j, T)) * investment_ratio * investment_ratio
+                ris += sigma(i, j) * investment_ratio * investment_ratio
         risks.append(ris)
     #リスクの計算終了
 
@@ -60,39 +61,30 @@ def calc_risk_return(individuals: list[list[int]]):
     return p
 
 #平均収益率を計算する関数
-def r(i, T):
+def r(i):
     if i in average_roi_dict:
         return average_roi_dict[i]
 
-    #各日の収益率を計算して足し合わせる
-    closing_list = closing_list_dict[i]
-    erning_sum = 0
-    for k in range(T - 1):
-        #当日の収益率
-        erning = (closing_list[k] - closing_list[k + 1]) / closing_list[k + 1]
-        erning_sum += erning
-    average = erning_sum / (T-1)
-
-    average_roi_dict[i] = average
-
-    return average
+    roi_list = roi_list_dict[i]
+    average_roi = mean(roi_list)
+    average_roi_dict[i] = average_roi
+    return average_roi
 
 #共分散を計算する関数
-def sigma(i, j, T, average_ri, average_rj):
+def sigma(i, j):
     key = frozenset({i, j})
     if key in cov_dict:
         return cov_dict[key]
 
     #偏差の合計を計算
     distinction_sum = 0
-    closing_list_i = closing_list_dict[i]
-    closing_list_j = closing_list_dict[j]
-    for k in range(T - 1):
-        erning_i = (closing_list_i[k] - closing_list_i[k + 1]) / closing_list_i[k + 1]
-        erning_j = (closing_list_j[k] - closing_list_j[k + 1]) / closing_list_j[k + 1]
-        distinction = (erning_i - average_ri) * (erning_j - average_rj)
-        distinction_sum += distinction
-    CoV = distinction_sum / (T-1)
+    roi_list_i = roi_list_dict[i]
+    roi_list_j = roi_list_dict[j]
+    average_roi_i = r(i)
+    average_roi_j = r(j)
+    for k in range(day_count):
+        distinction_sum += (roi_list_i[k] - average_roi_i) * (roi_list_j[k] - average_roi_j)
+    CoV = distinction_sum / day_count
 
     cov_dict[key] = CoV
 
@@ -138,11 +130,31 @@ type StockCode = str
 stock_codes: list[StockCode] = []
 """銘柄コードの一覧"""
 
-closing_list_dict: dict[int, array[float]] = {}
+roi_list_dict: dict[int, array[float]] = {}
 """
-各銘柄の終値のリストの辞書
-終値リストは日付の降順となっている
+各銘柄の収益率のリストの辞書
+収益率のリストは日付の降順となっている
 """
+
+roi_list_dict: dict[int, array[float]] = {}
+
+def closing_to_roi(closing_list: array[float]) -> array[float]:
+    """終値のリストから収益率のリストを作成する。
+
+    Args:
+        closing_list (array[float]): 終値のリスト。日付の降順である必要がある。
+
+    Returns:
+        array[float]: 収益率のリスト。終値のリストの大きさ - 1の大きさになる
+    """
+
+    len_roi_list = len(closing_list) - 1
+    roi_list = array('f', [0] * len_roi_list)
+
+    for i in range(len_roi_list):
+        roi_list[i] = (closing_list[i] - closing_list[i + 1]) / closing_list[i + 1]
+
+    return roi_list
 
 with open("stock.txt", "r") as file:
     for i, line in enumerate(file):
@@ -152,10 +164,11 @@ with open("stock.txt", "r") as file:
         with open(stock_code + ".csv", "r", encoding = "utf-8") as csv_file:
             csv_file.readline()
             csv_reader = csv.reader(csv_file)
-            closing_list_dict[i] = array('f', [float(row[CLOSING_COL_INDEX]) for row in csv_reader])
+            closing_list = array('f', [float(row[CLOSING_COL_INDEX]) for row in csv_reader])
+            roi_list_dict[i] = closing_to_roi(closing_list)
 
-#取得した株式データの期間を保存
-T = len(closing_list_dict[0])
+day_count = len(roi_list_dict[0])
+"""収益率が計算できた日の数"""
 
 #Gen Initial individuals.
 
