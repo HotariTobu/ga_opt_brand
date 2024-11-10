@@ -22,7 +22,7 @@ MAXIMUM_TERMINAL = 500
 
 PopulationItem = namedtuple('PopulationItem', ['risk', 'ret'])
 
-def calc_risk_return(individuals: list):
+def calc_risk_return(individuals: list[list[int]]):
     #リターンとリスクを保存するリスト, 行は個体に対応
     returns = []
     risks = []
@@ -51,9 +51,9 @@ def calc_risk_return(individuals: list):
     return p
 
 #平均収益率を計算する関数
-def r(stock_name, T):
+def r(i, T):
     #各日の収益率を計算して足し合わせる
-    closing_list = closing_list_dict[stock_code_dict[stock_name]]
+    closing_list = closing_list_dict[i]
     erning_sum = 0
     for k in range(1, T):
         #当日の収益率
@@ -63,11 +63,11 @@ def r(stock_name, T):
     return average
 
 #共分散を計算する関数
-def sigma(stock_namei, stock_namej, T, average_ri, average_rj):
+def sigma(i, j, T, average_ri, average_rj):
     #偏差の合計を計算
     distinction_sum = 0
-    closing_list_i = closing_list_dict[stock_code_dict[stock_namei]]
-    closing_list_j = closing_list_dict[stock_code_dict[stock_namej]]
+    closing_list_i = closing_list_dict[i]
+    closing_list_j = closing_list_dict[j]
     for k in range(1, T):
         erning_i = (closing_list_i[k] - closing_list_i[k-1]) / closing_list_i[k-1]
         erning_j = (closing_list_j[k] - closing_list_j[k-1]) / closing_list_j[k-1]
@@ -117,8 +117,6 @@ type StockCode = str
 stock_codes: list[StockCode] = []
 """銘柄コードの一覧"""
 
-stock_code_dict: dict[StockCode, int] = {}
-
 closing_list_dict: dict[int, array[float]] = {}
 """各銘柄の終値のリストの辞書"""
 
@@ -126,8 +124,6 @@ with open("stock.txt", "r") as file:
     for i, line in enumerate(file):
         stock_code = line.strip()
         stock_codes.append(stock_code)
-
-        stock_code_dict[stock_code] = i
 
         with open(stock_code + ".csv", "r", encoding = "utf-8") as csv_file:
             csv_file.readline()
@@ -140,13 +136,14 @@ T = len(closing_list_dict[0])
 #Gen Initial individuals.
 
 #初期個体群
-initialIndividuals: list[list[StockCode]] = []
+initialIndividuals: list[list[int]] = []
 
 population_range = range(POPULATION)
 
+stock_range = range(len(stock_codes))
 for _ in population_range:
     # 初期個体を発生させる
-    individual = random.sample(stock_codes, LOCUS)
+    individual = random.sample(stock_range, LOCUS)
     initialIndividuals.append(individual)
 
 print("初期個体群 = ")
@@ -158,7 +155,7 @@ print(calc_risk_return(initialIndividuals))
 #多目的GA
 
 #現在の個体群を保存するリスト, [['1', '2', '3'], ['3', '5', '6']]のように管理されている
-individuals = initialIndividuals
+individuals: list[list[int]] = initialIndividuals
 
 for terminal in range(MAXIMUM_TERMINAL):
     #Individuals replication
@@ -198,7 +195,7 @@ for terminal in range(MAXIMUM_TERMINAL):
             child = individuals[i]
             #変更前と変更後の銘柄が同じじゃない場合銘柄を変更
             while True:
-                tmp = random.choice(stock_codes)
+                tmp = random.choice(stock_range)
                 if tmp != child[mutationLocus]:
                     child[mutationLocus] = tmp
                     break
@@ -223,7 +220,7 @@ for terminal in range(MAXIMUM_TERMINAL):
     precision_list = precision(p)
 
     #次世代に残す個体をリストで保存
-    nextIndividuals: list[list[StockCode]] = []
+    nextIndividuals: list[list[int]] = []
 
     #適合度0の個体数が次世代に残す所定個体数(POPULATION)以下であるかどうか判定
     if precision_list.count(0) <= POPULATION:
