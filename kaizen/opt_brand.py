@@ -5,6 +5,8 @@ import copy
 import math
 from statistics import mean
 
+from cycler import K
+
 random.seed(0)
 
 STOCK_LIST_FILEPATH = "stock.txt"
@@ -251,26 +253,26 @@ def mutation(individuals: list[list[int]]):
         individuals[i] = new_individual
 
 #適合度計算関数
-def calc_gofs(risk_array: array[float], return_array: array[float]) -> array[int]:
-    len_gof_array = len(risk_array)
-    gof_array = array('i', [0] * len_gof_array)
+def calc_gofs(risk_array: array[float], return_array: array[float]) -> list[int]:
+    sorted_risk_indices = [i for i, _ in sorted(enumerate(risk_array), key=lambda x: x[1])]
+    sorted_return_indices = [i for i, _ in sorted(enumerate(return_array), key=lambda x: -x[1])]
 
-    for i in range(len_gof_array):
-        for j in range(i + 1, len_gof_array):
-            risk_i = risk_array[i]
-            risk_j = risk_array[j]
-            ret_i = return_array[i]
-            ret_j = return_array[j]
+    risk_order_dict = {i: order for order, i in enumerate(sorted_risk_indices)}
+    return_order_dict = {i: order for order, i in enumerate(sorted_return_indices)}
 
-            #個体iが個体jよりリスクが高く, リターンが低い場合
-            if (risk_i >= risk_j) and (ret_i <= ret_j):
-                gof_array[i] += 1
+    gof_list: list[int] = []
 
-            #個体jが個体iよりリスクが高く, リターンが低い場合
-            if (risk_i <= risk_j) and (ret_i >= ret_j):
-                gof_array[j] += 1
+    for i in range(len(risk_array)):
+        risk_order = risk_order_dict[i]
+        return_order = return_order_dict[i]
 
-    return gof_array
+        low_risk_indices = sorted_risk_indices[:risk_order]
+        high_return_indices = sorted_return_indices[:return_order]
+
+        gof = len(set(low_risk_indices) & set(high_return_indices))
+        gof_list.append(gof)
+
+    return gof_list
 
 for terminal in range(MAXIMUM_TERMINAL):
     #Individuals replication
@@ -291,23 +293,23 @@ for terminal in range(MAXIMUM_TERMINAL):
     #Environmental selection
 
     #適合度を計算する
-    gof_array = calc_gofs(risk_array, return_array)
+    gof_list = calc_gofs(risk_array, return_array)
 
     #次世代に残す個体をリストで保存
     next_individuals: list[list[int]] = []
 
     #適合度0の個体数が次世代に残す所定個体数(POPULATION)以下であるかどうか判定
-    if gof_array.count(0) <= POPULATION:
+    if gof_list.count(0) <= POPULATION:
         #適合度が小さい順、リスクが小さい順に個体を選ぶ
-        next_individuals = [individual for _, _, individual in sorted(zip(gof_array, risk_array, individuals))[:POPULATION]]
+        next_individuals = [individual for _, _, individual in sorted(zip(gof_list, risk_array, individuals))[:POPULATION]]
     #適合度0の個体が次世代に残す所定個体数以下である場合の処理終了
     else:
         raise NotImplementedError()
         # #適合度0の個体が次世代に残す個体より多い場合
         # #個体度0の個体のindividualsのインデックスをリストに格納
         # next_idx: list[int] = []
-        # for i in range(len(gof_array)):
-        #     if gof_array[i] == 0:
+        # for i in range(len(gof_list)):
+        #     if gof_list[i] == 0:
         #         next_idx.append(i)
 
         # #next_idxの要素数がpopulationと等しくなるまで繰り返す
