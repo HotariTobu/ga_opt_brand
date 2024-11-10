@@ -232,9 +232,7 @@ for terminal in range(MAXIMUM_TERMINAL):
                 next_idx.append(i)
 
         #next_idxの要素数がpopulationと等しくなるまで繰り返す
-        while True:
-            if len(next_idx) == POPULATION:
-                break
+        for _ in range(POPULATION, len(next_idx)):
             #next_idxのすべての組み合わせに対して距離を保存するリスト
             #リストの形式は[(距離, 個体のインデックス1, 個体のインデックス2), ...]
             next_idx_distance: list[tuple[float, int, int]] = []
