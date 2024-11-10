@@ -2,6 +2,7 @@ import csv
 import random
 import copy
 import math
+import numpy as np
 
 POPULATION = 50
 """一世代の個体数"""
@@ -101,15 +102,11 @@ T = len(stock_dict[stock_codes[0]])
 initialIndividuals = []
 
 for _ in range(0,POPULATION):
-    #重複が無いように初期個体を発生させる
-    while True:
-        tmp = []
-        for i in range(0, LOCUS):
-            tmp.append(stock_codes[random.randint(0, len(stock_codes) - 1)])
-        if len(tmp) == len(set(tmp)):
-            #発生させた個体を初期個体群にappend
-            initialIndividuals.append(tmp)
-            break
+    # 初期個体を発生させる
+    individual = np.random.choice(stock_codes, LOCUS)
+    individual = [str(stock_code) for stock_code in individual]
+    initialIndividuals.append(individual)
+
 print("初期個体群 = ")
 print(initialIndividuals)
 print("初期個体群のリスクとリターン = ")
