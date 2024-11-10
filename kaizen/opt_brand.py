@@ -151,7 +151,7 @@ for terminal in range(MAXIMUM_TERMINAL):
     #一世代前の個体群をコピーして保存する
     priorIndividuals = copy.deepcopy(individuals)
     #Crossover
-    for i in range(0, POPULATION):
+    for _ in range(0, POPULATION):
         while True:
             #交叉する個体を示す変数
             I1 = 0
