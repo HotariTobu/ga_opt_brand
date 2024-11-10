@@ -181,6 +181,17 @@ for _ in population_range:
     individual = random.sample(stock_range, LOCUS_NUM)
     individuals.append(individual)
 
+def print_stock_combinations(individuals: list[list[int]], prefix = ''):
+    """銘柄の組み合わせを出力する
+
+    Args:
+        individuals (list[list[int]]): 個体群
+        prefix (str, optional): 行頭のプレフィクス
+    """
+
+    combinations = [stock_codes[i] for individual in individuals for i in individual]
+    print(prefix + 'combinations =', combinations)
+
 def print_risk_return(individuals: list[list[int]], prefix = ''):
     """リスクとリターンを出力する。
 
@@ -194,7 +205,7 @@ def print_risk_return(individuals: list[list[int]], prefix = ''):
     print(prefix + 'risk_array =', risk_array)
     print(prefix + 'return_array =', return_array)
 
-print("初期個体群 =", individuals)
+print_stock_combinations(individuals, prefix="initial_")
 print_risk_return(individuals, prefix="initial_")
 
 
@@ -337,5 +348,5 @@ for terminal in range(MAXIMUM_TERMINAL):
     print(terminal, end='\r')
 #一世代での操作終了
 
-print("最適化された銘柄の組み合わせ =", individuals)
+print_stock_combinations(individuals, prefix="optimized_")
 print_risk_return(individuals, prefix="optimized_")
