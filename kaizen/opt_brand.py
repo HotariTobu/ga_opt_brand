@@ -100,7 +100,7 @@ T = len(stock_dict[stock_codes[0]])
 #初期個体群
 initialIndividuals = []
 
-for i in range(0,POPULATION):
+for _ in range(0,POPULATION):
     #重複が無いように初期個体を発生させる
     while True:
         tmp = []
