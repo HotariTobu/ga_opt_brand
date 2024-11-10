@@ -1,11 +1,8 @@
 from array import array
 import csv
 import random
-import copy
 import math
 from statistics import mean
-
-from cycler import K
 
 random.seed(0)
 
