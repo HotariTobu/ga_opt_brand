@@ -86,13 +86,13 @@ def precision(population: list[PopulationItem]):
             risk_i, ret_i = population[i]
             risk_j, ret_j = population[j]
 
-            #個体iが個体jよりリスクが低く, リターンが高い場合
+            #個体iが個体jよりリスクが高く, リターンが低い場合
+            if (risk_i >= risk_j) and (ret_i <= ret_j):
+                precision_ans[i] += 1
+
+            #個体jが個体iよりリスクが高く, リターンが低い場合
             if (risk_i <= risk_j) and (ret_i >= ret_j):
                 precision_ans[j] += 1
-
-            #個体jが個体iよりリスクが低く, リターンが高い場合
-            if (risk_j <= risk_i) and (ret_j >= ret_i):
-                precision_ans[i] += 1
 
     return precision_ans
 #適合度計算関数終了
