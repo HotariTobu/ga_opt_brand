@@ -130,10 +130,9 @@ with open("stock.txt", "r") as file:
         stock_code_dict[stock_code] = i
 
         with open(stock_code + ".csv", "r", encoding = "utf-8") as csv_file:
-            f = list(csv.reader(csv_file, delimiter = ","))
-            f.reverse()
-            f.pop()
-            closing_list_dict[i] = array('f', [float(row[CLOSING_COL_INDEX]) for row in f])
+            csv_file.readline()
+            csv_reader = csv.reader(csv_file)
+            closing_list_dict[i] = array('f', [float(row[CLOSING_COL_INDEX]) for row in csv_reader])
 
 #取得した株式データの期間を保存
 T = len(closing_list_dict[0])
