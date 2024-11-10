@@ -218,25 +218,27 @@ individuals: list[list[int]] = initial_individuals
 for terminal in range(MAXIMUM_TERMINAL):
     #Individuals replication
     #一世代前の個体群をコピーして保存する
-    prev_individuals = copy.deepcopy(individuals)
+    prev_individuals = individuals.copy()
+
     #Crossover
     for _ in population_range:
         while True:
             #交叉する個体を示す変数
-            I1 = random.randint(0, POPULATION - 1)
-            I2 = random.randint(I1 + 1, I1 + POPULATION - 1) % POPULATION
+            i, j = random.sample(population_range, 2)
+            individual_i = individuals[i]
+            individual_j = individuals[j]
 
             #交叉する遺伝子座を選択
-            cLocus = random.randint(1, LOCUS_NUM - 1)
+            locus = random.randrange(1, LOCUS_NUM)
 
             #交叉を行う
-            child1 = individuals[I1][:cLocus] + individuals[I2][cLocus:]
-            child2 = individuals[I2][:cLocus] + individuals[I1][cLocus:]
+            new_individual_i = individual_i[:locus] + individual_j[locus:]
+            new_individual_j = individual_j[:locus] + individual_i[locus:]
 
             #交叉する際, 一つの個体内に同じ銘柄番号が格納されていないか確認する
-            if (len(child1) == len(set(child1))) and  (len(child2) == len(set(child2))):
-                individuals[I1] = child1
-                individuals[I2] = child2
+            if len(new_individual_i) == len(set(new_individual_i)) and len(new_individual_j) == len(set(new_individual_j)):
+                individuals[i] = new_individual_i
+                individuals[j] = new_individual_j
                 break
     #Crossover終了
 
@@ -246,22 +248,20 @@ for terminal in range(MAXIMUM_TERMINAL):
         if random.random() > 0.05:
             continue
 
-        #どの遺伝子座に突然変異を施すか決める
-        mutation_locus = random.randrange(LOCUS_NUM)
+        new_individual = individuals[i].copy()
+
         #ランダムに銘柄番号を決める 同じ銘柄番号の場合はやり直し
         while True:
-            child = individuals[i]
             #変更前と変更後の銘柄が同じじゃない場合銘柄を変更
-            while True:
-                tmp = random.choice(stock_range)
-                if tmp != child[mutation_locus]:
-                    child[mutation_locus] = tmp
-                    break
-            #遺伝子座の銘柄を変更完了
-
-            if len(child) == len(set(child)):
-                individuals[i] = child
+            stock_index = random.choice(stock_range)
+            if stock_index not in new_individual:
                 break
+
+        #どの遺伝子座に突然変異を施すか決める
+        locus = random.randrange(LOCUS_NUM)
+
+        new_individual[locus] = stock_index
+        individuals[i] = new_individual
         #ランダムに銘柄番号決定終了
     #Mutation終了
 
