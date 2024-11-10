@@ -22,6 +22,12 @@ MAXIMUM_TERMINAL = 500
 
 PopulationItem = namedtuple('PopulationItem', ['risk', 'ret'])
 
+average_roi_dict: dict[int, float] = {}
+"""平均収益率のキャッシュ"""
+
+cov_dict: dict[frozenset, float] = {}
+"""収益率の共分散のキャッシュ"""
+
 def calc_risk_return(individuals: list[list[int]]):
     #リターンとリスクを保存するリスト, 行は個体に対応
     returns = []
@@ -52,6 +58,9 @@ def calc_risk_return(individuals: list[list[int]]):
 
 #平均収益率を計算する関数
 def r(i, T):
+    if i in average_roi_dict:
+        return average_roi_dict[i]
+
     #各日の収益率を計算して足し合わせる
     closing_list = closing_list_dict[i]
     erning_sum = 0
@@ -60,10 +69,17 @@ def r(i, T):
         erning = (closing_list[k] - closing_list[k + 1]) / closing_list[k + 1]
         erning_sum += erning
     average = erning_sum / (T-1)
+
+    average_roi_dict[i] = average
+
     return average
 
 #共分散を計算する関数
 def sigma(i, j, T, average_ri, average_rj):
+    key = frozenset({i, j})
+    if key in cov_dict:
+        return cov_dict[key]
+
     #偏差の合計を計算
     distinction_sum = 0
     closing_list_i = closing_list_dict[i]
@@ -74,7 +90,9 @@ def sigma(i, j, T, average_ri, average_rj):
         distinction = (erning_i - average_ri) * (erning_j - average_rj)
         distinction_sum += distinction
     CoV = distinction_sum / (T-1)
-    #print(CoV)
+
+    cov_dict[key] = CoV
+
     return CoV
 
 #適合度計算関数
