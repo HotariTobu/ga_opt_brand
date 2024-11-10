@@ -1,3 +1,4 @@
+from array import array
 from collections import namedtuple
 import csv
 from itertools import combinations
@@ -6,6 +7,9 @@ import copy
 import math
 
 random.seed(0)
+
+CLOSING_COL_INDEX = 4
+"""CSVデータファイルの終値の列番号"""
 
 POPULATION = 50
 """一世代の個体数"""
@@ -28,7 +32,7 @@ def calc_risk_return(individuals: list):
         ret = 0
         #一つの個体のリターンを計算
         for i in individual:
-            ret += (r(i, stock_dict, T) * (1/LOCUS))
+            ret += (r(i, T) * (1/LOCUS))
         returns.append(ret)
     #リターンの計算終了
 
@@ -37,7 +41,7 @@ def calc_risk_return(individuals: list):
         ris = 0
         for i in individual:
             for j in individual:
-                ris += (sigma(i, j, stock_dict, T, r(i, stock_dict, T), r(j, stock_dict, T)) * (1 / LOCUS) * (1 / LOCUS))
+                ris += (sigma(i, j, T, r(i, T), r(j, T)) * (1 / LOCUS) * (1 / LOCUS))
         risks.append(ris)
     #リスクの計算終了
 
@@ -47,23 +51,26 @@ def calc_risk_return(individuals: list):
     return p
 
 #平均収益率を計算する関数
-def r(stock_name, stock_dict, T):
+def r(stock_name, T):
     #各日の収益率を計算して足し合わせる
+    closing_list = closing_list_dict[stock_code_dict[stock_name]]
     erning_sum = 0
     for k in range(1, T):
         #当日の収益率
-        erning = (float(stock_dict[stock_name][k][4]) - float(stock_dict[stock_name][k-1][4])) / float(stock_dict[stock_name][k-1][4])
+        erning = (closing_list[k] - closing_list[k-1]) / closing_list[k-1]
         erning_sum += erning
     average = erning_sum / (T-1)
     return average
 
 #共分散を計算する関数
-def sigma(stock_namei, stock_namej, stock_dict, T, average_ri, average_rj):
+def sigma(stock_namei, stock_namej, T, average_ri, average_rj):
     #偏差の合計を計算
     distinction_sum = 0
+    closing_list_i = closing_list_dict[stock_code_dict[stock_namei]]
+    closing_list_j = closing_list_dict[stock_code_dict[stock_namej]]
     for k in range(1, T):
-        erning_i = (float(stock_dict[stock_namei][k][4]) - float(stock_dict[stock_namei][k-1][4])) / float(stock_dict[stock_namei][k-1][4])
-        erning_j = (float(stock_dict[stock_namej][k][4]) - float(stock_dict[stock_namej][k-1][4])) / float(stock_dict[stock_namej][k-1][4])
+        erning_i = (closing_list_i[k] - closing_list_i[k-1]) / closing_list_i[k-1]
+        erning_j = (closing_list_j[k] - closing_list_j[k-1]) / closing_list_j[k-1]
         distinction = (erning_i - average_ri) * (erning_j - average_rj)
         distinction_sum += distinction
     CoV = distinction_sum / (T-1)
@@ -110,26 +117,26 @@ type StockCode = str
 stock_codes: list[StockCode] = []
 """銘柄コードの一覧"""
 
-stock_dict: dict[StockCode, list[list[str]]] = {}
-"""
-株式データ[StockCode][Date][Column]
+stock_code_dict: dict[StockCode, int] = {}
 
-stock_dict["1234"][0][4]で、最終行が2023年12月29日のデータなら、銘柄コード1234の2023年12月29日の終値にアクセスできる。
-"""
+closing_list_dict: dict[int, array[float]] = {}
+"""各銘柄の終値のリストの辞書"""
 
 with open("stock.txt", "r") as file:
-    for line in file:
+    for i, line in enumerate(file):
         stock_code = line.strip()
         stock_codes.append(stock_code)
+
+        stock_code_dict[stock_code] = i
 
         with open(stock_code + ".csv", "r", encoding = "utf-8") as csv_file:
             f = list(csv.reader(csv_file, delimiter = ","))
             f.reverse()
             f.pop()
-            stock_dict[stock_code] = [row for row in f]
+            closing_list_dict[i] = array('f', [float(row[CLOSING_COL_INDEX]) for row in f])
 
 #取得した株式データの期間を保存
-T = len(stock_dict[stock_codes[0]])
+T = len(closing_list_dict[0])
 
 #Gen Initial individuals.
 
