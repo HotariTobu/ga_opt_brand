@@ -375,47 +375,72 @@ for terminal in range(MAXIMUM_TERMINAL):
 
     else:
         # 50000世代まで行っても発生しなかった_(:3」∠)_
-        raise NotImplementedError()
-        # #適合度0の個体が次世代に残す個体より多い場合
-        # #個体度0の個体のindividualsのインデックスをリストに格納
-        # next_idx: list[int] = []
-        # for i in range(len(gof_list)):
-        #     if gof_list[i] == 0:
-        #         next_idx.append(i)
 
-        # #next_idxの要素数がpopulationと等しくなるまで繰り返す
-        # for _ in range(POPULATION, len(next_idx)):
-        #     #next_idxのすべての組み合わせに対して距離を保存するリスト
-        #     #リストの形式は[(距離, 個体のインデックス1, 個体のインデックス2), ...]
-        #     next_idx_distance: list[tuple[float, int, int]] = []
-        #     #Step 1. next_idxのすべての組み合わせに対して距離を計算, リストに保存
-        #     for i, j in combinations(next_idx, 2):
-        #         next_idx_distance.append((calculate_distance(p, i, j), i, j))
-        #     #Step2. もっとも距離の短い2点を見つけ出しmin_distanceにタプル形式で代入する
-        #     min_distance = min(next_idx_distance, key=lambda x: x[0])
-        #     #Step3. もっとも近接している2個体それぞれの個体に対して, 2番目に近接している個体との距離を計算
-        #     min_dis1: list[tuple[float, int, int]] = []
-        #     min_dis2: list[tuple[float, int, int]] = []
-        #     for i in range(len(next_idx)):
-        #         if i == min_distance[1] or i == min_distance[2]:
-        #             continue
+        # 適合度が0の個体のインデックス
+        zero_indices = [i for i, gof in enumerate(gof_list) if gof == 0]
 
-        #         min_dis1.append((calculate_distance(p, min_distance[1], i), min_distance[1], i))
-        #         min_dis2.append((calculate_distance(p, min_distance[2], i), min_distance[2], i))
+        # リスクが小さい順に並び替える
+        sorted_indices = sorted(zero_indices, key=lambda i: risk_array[i])
 
-        #     min_dis1_min = min(min_dis1, key=lambda x: x[0])
-        #     min_dis2_min = min(min_dis2, key=lambda x: x[0])
-        #     #Step4. 2番目に近接している個体との距離が短い個体を削除する
-        #     if min_dis1_min[0] < min_dis2_min[0]:
-        #         #min_dis1_minのインデックスをnext_idxから削除
-        #         next_idx.remove(min_dis1_min[1])
-        #     else:
-        #         #min_dis2_minのインデックスをnext_idxから削除
-        #         next_idx.remove(min_dis2_min[1])
-        # #next_idxの要素数がpopulationと等しくなるまでループ完了
+        def calc_distance(sorted_i: int) -> float:
+            """指定したインデックスの個体とその隣の個体の距離を求める。
 
-        # for row in next_idx:
-        #     next_individuals.append(individuals[row])
+            Args:
+                sorted_i (int): `sorted_indices`のインデックス
+
+            Returns:
+                float: 個体間の距離
+            """
+
+            sorted_j = sorted_i + 1
+
+            i = sorted_indices[sorted_i]
+            j = sorted_indices[sorted_j]
+
+            risk_dif = risk_array[i] - risk_array[j]
+            return_dif = return_array[i] - return_array[j]
+
+            distance = math.hypot(risk_dif, return_dif)
+            return distance
+
+        # 各個体間の距離
+        distances = [
+            calc_distance(sorted_i) for sorted_i in range(len(sorted_indices) - 1)
+        ]
+
+        def remove_index(index: int):
+            """指定したインデックスの`sorted_indices`の要素を削除し、`distances`を更新する。
+
+            Args:
+                index (int): `sorted_indices`のインデックス
+            """
+
+            del sorted_indices[index]
+            del distances[index]
+            del distances[index - 1]
+
+            sorted_i = index - 1
+            distance = calc_distance(sorted_i)
+            distances.insert(sorted_i, distance)
+
+        # 数がPOPULATIONになるまで個体のインデックスを減らす
+        for _ in range(POPULATION, len(sorted_indices)):
+            # 最も距離が短い個体間のインデックスを取得する
+            min_index, _ = min(enumerate(distances), key=lambda x: x[1])
+
+            if min_index == 0:
+                remove_index(1)
+            elif min_index == len(distances) - 1:
+                remove_index(min_index)
+            else:
+                prev_distance = distances[min_index - 1]
+                next_distance = distances[min_index + 1]
+                if prev_distance < next_distance:
+                    remove_index(min_index)
+                else:
+                    remove_index(min_index + 1)
+
+        next_individuals = [individuals[i] for i in sorted_indices]
 
     individuals = next_individuals
     print(terminal, end="\r")
