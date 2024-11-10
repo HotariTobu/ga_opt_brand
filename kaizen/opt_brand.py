@@ -225,6 +225,7 @@ for terminal in range(MAXIMUM_TERMINAL):
         nextIndividuals = [individual for _, _, individual in sorted(zip(precision_list, p, individuals), key=lambda x: x)[:POPULATION]]
     #適合度0の個体が次世代に残す所定個体数以下である場合の処理終了
     else:
+        raise NotImplementedError()
         #適合度0の個体が次世代に残す個体より多い場合
         #個体度0の個体のindividualsのインデックスをリストに格納
         next_idx: list[int] = []
